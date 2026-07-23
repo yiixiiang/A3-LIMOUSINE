@@ -1,0 +1,5 @@
+VERCEL PROJECT: aejky-limousine
+PRIMARY DOMAIN: limousine.a3group.sg
+A3 FINANCE: finance.a3group.sg
+PUBLIC API: finance.a3group.sg/api/public/limousine
+DO NOT ATTACH: a3group.sg, www.a3group.sg, sakura.a3group.sg, finance.a3group.sg, *.a3group.sg

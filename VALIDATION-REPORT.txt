@@ -1,0 +1,27 @@
+AEJKY LIMOUSINE — A3 FINANCE CONNECTED WEBSITE
+VALIDATION REPORT
+Date: 23 July 2026 (Asia/Singapore)
+
+PASS  TypeScript/TSX source syntax parsed successfully.
+PASS  Strict type validation passed with local framework declarations.
+PASS  Every referenced CSS Module class exists.
+PASS  Every local relative import target exists.
+PASS  package.json and package-lock.json root metadata are synchronized.
+PASS  Next.js 16.2.11 and React 19.2.4 are locked.
+PASS  Public website API proxy exists at app/api/limousine/route.ts.
+PASS  A3 Finance URL and public API are configurable by environment variables.
+PASS  Internal upstream server errors are hidden from customers.
+PASS  Basic honeypot and minimum submission-time anti-spam checks are enabled.
+PASS  Staff links open https://finance.a3group.sg/login.
+PASS  Website metadata, robots.txt and sitemap are configured for limousine.a3group.sg.
+PASS  Source package excludes node_modules, .next and local environment secrets.
+
+A clean npm installation and full Next.js production build could not be executed in
+this sandbox because the npm registry connection did not complete. Before production,
+Vercel or a local computer should run:
+
+  npm ci
+  npm run typecheck
+  npm run build
+
+A3 Finance must already have migration 022_public_limousine_website.sql applied.

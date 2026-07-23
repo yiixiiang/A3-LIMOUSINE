@@ -1,0 +1,28 @@
+AEJKY LIMOUSINE → A3 FINANCE INTEGRATION CHECKLIST
+
+PUBLIC WEBSITE
+- Domain: https://limousine.a3group.sg
+- Vercel project: aejky-limousine
+- Environment: NEXT_PUBLIC_A3_FINANCE_URL=https://finance.a3group.sg
+- Environment: A3_FINANCE_API_URL=https://finance.a3group.sg/api/public/limousine
+
+A3 FINANCE
+- Domain: https://finance.a3group.sg
+- Public endpoint: /api/public/limousine
+- Supabase migration required: 022_public_limousine_website.sql
+- Active company required: AEJKY Limousine
+- Company type required: limousine
+- Active vehicle types and rate cards recommended
+
+EXPECTED FLOW
+1. Customer submits a quotation on limousine.a3group.sg.
+2. The standalone website proxy sends the request to A3 Finance.
+3. A3 Finance saves it under limousine_quote_requests.
+4. A reference such as AEJ-20260723-00001 is returned.
+5. AEJKY staff open finance.a3group.sg/login to follow up.
+
+DOMAIN RULES
+- Keep a3group.sg for the A3 Group homepage.
+- Keep finance.a3group.sg for A3 Finance.
+- Keep limousine.a3group.sg for AEJKY Limousine.
+- Do not attach the same custom domain to multiple Vercel projects.
