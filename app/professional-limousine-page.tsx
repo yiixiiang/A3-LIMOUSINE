@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import styles from "./professional-limousine.module.css";
+import LiveWebsiteCatalogue from "../components/live-website-catalogue";
 
 const DEFAULT_WHATSAPP = "6584849004";
 const DISPLAY_PHONE = "+65 8484 9004";
@@ -480,6 +481,8 @@ export default function ProfessionalLimousinePage() {
           ))}
         </div>
       </section>
+
+      <LiveWebsiteCatalogue site="limousine" title="Services, Vehicles & Prices" />
 
       <section className={styles.assuranceSection}>
         <div className={styles.assuranceCopy}>
