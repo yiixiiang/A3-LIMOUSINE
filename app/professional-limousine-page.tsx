@@ -14,25 +14,25 @@ const services = [
     number: "01",
     value: "airport_transfer",
     title: "Airport Transfer",
-    text: "Meet-and-greet coordination, flight-aware pickup planning and direct hotel or residence transfer.",
+    text: "Flight-aware pickup planning, meet-and-greet coordination and direct hotel or residence transfers.",
   },
   {
     number: "02",
     value: "point_to_point",
     title: "Point-to-Point",
-    text: "Private chauffeur transport for meetings, dining, events and everyday executive travel.",
+    text: "Private transport for meetings, dining, events and everyday executive travel.",
   },
   {
     number: "03",
     value: "hourly_disposal",
     title: "Hourly Disposal",
-    text: "Keep a dedicated vehicle and driver available for multiple stops and flexible schedules.",
+    text: "A dedicated vehicle and chauffeur available for multiple stops and flexible schedules.",
   },
   {
     number: "04",
     value: "sg_jb",
     title: "Singapore ↔ Johor",
-    text: "Comfortable cross-border journeys with direct pickup and destination coordination.",
+    text: "Comfortable cross-border journeys with coordinated pickup and destination planning.",
   },
 ] as const;
 
@@ -45,11 +45,11 @@ const fallbackRates = [
   { id: -6, vehicle: "6-Seater", service: "Hourly Disposal · 3-hour minimum", price: "From S$45/hr" },
 ];
 
-const standards = [
-  "Professional drivers",
+const trustPoints = [
+  "Professional chauffeurs",
   "Clean executive vehicles",
-  "Clear quotation",
-  "A3 Finance connected",
+  "Clear quotation before booking",
+  "Singapore & Malaysia coverage",
 ];
 
 type VehicleType = {
@@ -167,7 +167,6 @@ function money(amount: number, currency = "SGD") {
 export default function ProfessionalLimousinePage() {
   const [form, setForm] = useState<QuoteForm>(initialForm);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [websiteData, setWebsiteData] = useState<PublicWebsiteData>({});
   const [loadingRates, setLoadingRates] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -193,6 +192,7 @@ export default function ProfessionalLimousinePage() {
         setLoadingRates(false);
       }
     }
+
     void loadWebsiteData();
     return () => controller.abort();
   }, []);
@@ -207,7 +207,7 @@ export default function ProfessionalLimousinePage() {
 
   const displayRates = useMemo(() => {
     if (rateCards.length === 0) return fallbackRates;
-    return rateCards.slice(0, 8).map((rate) => {
+    return rateCards.slice(0, 6).map((rate) => {
       const hourly = rate.pricing_method === "per_hour";
       return {
         id: rate.id,
@@ -234,7 +234,9 @@ export default function ProfessionalLimousinePage() {
         `Passengers: ${form.passengers || "-"}`,
         `Luggage: ${form.luggage || "0"}`,
         `Return trip: ${form.return_trip ? "Yes" : "No"}`,
-        selectedRate ? `Selected rate: ${selectedRate.name} — ${money(selectedRate.base_amount, selectedRate.currency)}` : "",
+        selectedRate
+          ? `Selected rate: ${selectedRate.name} — ${money(selectedRate.base_amount, selectedRate.currency)}`
+          : "",
         form.special_requests ? `Notes: ${form.special_requests}` : "",
       ]
         .filter(Boolean)
@@ -283,12 +285,6 @@ export default function ProfessionalLimousinePage() {
     }
   }
 
-  async function copyForSocial() {
-    await navigator.clipboard.writeText(message);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 2200);
-  }
-
   function goTo(id: string) {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
     setMenuOpen(false);
@@ -309,175 +305,364 @@ export default function ProfessionalLimousinePage() {
   return (
     <main className={styles.site}>
       <header className={styles.header}>
-        <button className={styles.brand} type="button" onClick={() => goTo("home")} aria-label="AEJKY Limousine home">
-          <span className={styles.brandLogo}><img src="/aejky-limousine-logo.webp" alt="AEJKY Limousine" /></span>
-          <span><strong>AEJKY</strong><small>LIMOUSINE</small></span>
+        <button
+          className={styles.brand}
+          type="button"
+          onClick={() => goTo("home")}
+          aria-label="AEJKY Limousine home"
+        >
+          <img src="/aejky-limousine-logo.webp" alt="AEJKY Limousine" />
+          <span>
+            <strong>AEJKY</strong>
+            <small>LIMOUSINE</small>
+          </span>
         </button>
 
         <nav className={`${styles.nav} ${menuOpen ? styles.navOpen : ""}`}>
           <button type="button" onClick={() => goTo("services")}>Services</button>
           <button type="button" onClick={() => goTo("rates")}>Rates</button>
-          <button type="button" onClick={() => goTo("about")}>About</button>
           <button type="button" onClick={() => goTo("quote")}>Quotation</button>
-          <a href={whatsappUrl(whatsappNumber, "Hello AEJKY Limousine, I would like to make an enquiry.")} target="_blank" rel="noreferrer">WhatsApp</a>
+          <a
+            className={styles.navWhatsapp}
+            href={whatsappUrl(whatsappNumber, "Hello AEJKY Limousine, I would like to make an enquiry.")}
+            target="_blank"
+            rel="noreferrer"
+          >
+            WhatsApp
+          </a>
         </nav>
 
-        <button className={styles.menu} type="button" onClick={() => setMenuOpen((value) => !value)} aria-label="Open navigation">
-          <span /><span /><span />
+        <button
+          className={styles.menu}
+          type="button"
+          onClick={() => setMenuOpen((value) => !value)}
+          aria-label="Open navigation"
+        >
+          <span />
+          <span />
+          <span />
         </button>
       </header>
 
       <section className={styles.hero} id="home">
-        <div className={styles.heroPattern} />
         <div className={styles.heroCopy}>
-          <div className={styles.kicker}><span /> Singapore Premium Chauffeur Service</div>
-          <h1>Arrive with<br /><em>confidence.</em></h1>
+          <span className={styles.kicker}>Singapore Premium Chauffeur Service</span>
+          <h1>
+            Professional travel,
+            <em> properly arranged.</em>
+          </h1>
           <p>
-            Executive airport transfers, private point-to-point journeys, hourly disposal and
-            Singapore–Johor transport—professionally coordinated by AEJKY Limousine.
+            Airport transfers, private journeys, hourly chauffeur service and Singapore–Johor transport—planned with clear communication and dependable timing.
           </p>
           <div className={styles.heroActions}>
-            <button type="button" onClick={() => goTo("quote")}>Request a Quotation <span>→</span></button>
-            <a href={whatsappUrl(whatsappNumber, "Hello AEJKY Limousine, I would like to make a booking enquiry.")} target="_blank" rel="noreferrer">WhatsApp {DISPLAY_PHONE}</a>
+            <button type="button" onClick={() => goTo("quote")}>Request a Quotation</button>
+            <a
+              href={whatsappUrl(whatsappNumber, "Hello AEJKY Limousine, I would like to make a booking enquiry.")}
+              target="_blank"
+              rel="noreferrer"
+            >
+              WhatsApp {DISPLAY_PHONE}
+            </a>
           </div>
-          <div className={styles.heroFacts}>
-            <span><strong>24/7</strong><small>Enquiry Support</small></span>
-            <span><strong>SG · MY</strong><small>Cross-Border Service</small></span>
-            <span><strong>53488486E</strong><small>Registered UEN</small></span>
+          <div className={styles.heroMeta}>
+            <span><strong>24/7</strong> Enquiry support</span>
+            <span><strong>SG · MY</strong> Coverage</span>
+            <span><strong>UEN</strong> 53488486E</span>
           </div>
         </div>
 
         <div className={styles.heroVisual}>
-          <div className={styles.logoPanel}>
-            <span className={styles.logoLabel}>OFFICIAL BRAND</span>
-            <img src={websiteData.company?.logo_url || "/aejky-limousine-logo.webp"} alt="AEJKY Limousine official logo and fleet" />
-            <div className={styles.logoFooter}>
-              <span><small>UEN</small><strong>53488486E</strong></span>
-              <a href={whatsappUrl(whatsappNumber, "Hello AEJKY Limousine.")} target="_blank" rel="noreferrer">{DISPLAY_PHONE}</a>
-            </div>
+          <div className={styles.visualFrame}>
+            <img
+              src={websiteData.company?.logo_url || "/aejky-limousine-logo.webp"}
+              alt="AEJKY Limousine executive fleet"
+            />
           </div>
-          <div className={styles.floatingBadge}><span>AEJKY STANDARD</span><strong>Premium · Punctual · Personal</strong></div>
+          <div className={styles.visualCaption}>
+            <span>AEJKY STANDARD</span>
+            <strong>Premium · Punctual · Personal</strong>
+          </div>
         </div>
       </section>
 
-      <section className={styles.introStrip}>
-        {standards.map((item) => <span key={item}><i>◆</i>{item}</span>)}
+      <section className={styles.trustBar} aria-label="AEJKY service standards">
+        {trustPoints.map((point) => (
+          <span key={point}><i>✓</i>{point}</span>
+        ))}
       </section>
 
       <section className={styles.section} id="services">
-        <div className={styles.sectionHeading}>
-          <div><span className={styles.eyebrow}>OUR SERVICES</span><h2>Transport shaped around your schedule.</h2></div>
-          <p>From airport arrival to a full day of appointments, every trip is planned with comfort, timing and clear communication in mind.</p>
+        <div className={styles.sectionHeader}>
+          <div>
+            <span className={styles.eyebrow}>OUR SERVICES</span>
+            <h2>One professional service for every journey.</h2>
+          </div>
+          <p>
+            Tell us the route and timing. AEJKY will recommend the suitable vehicle, confirm the fare and coordinate the trip.
+          </p>
         </div>
+
         <div className={styles.serviceGrid}>
           {services.map((service) => (
             <article key={service.title}>
-              <span>{service.number}</span>
-              <h3>{service.title}</h3>
-              <p>{service.text}</p>
-              <button type="button" onClick={() => { update("service_type", service.value); update("rate_card_id", ""); goTo("quote"); }}>Enquire <b>→</b></button>
+              <span className={styles.serviceNumber}>{service.number}</span>
+              <div>
+                <h3>{service.title}</h3>
+                <p>{service.text}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  update("service_type", service.value);
+                  update("rate_card_id", "");
+                  goTo("quote");
+                }}
+              >
+                Request this service <b>→</b>
+              </button>
             </article>
           ))}
         </div>
       </section>
 
-      <section className={styles.darkSection} id="rates">
-        <div className={styles.sectionHeadingDark}>
-          <div><span className={styles.eyebrow}>STARTING RATES</span><h2>Transparent guidance before you book.</h2></div>
-          <p>Rates are loaded from A3 Finance when available. Final fares may vary for distance, timing, ERP, parking, waiting, extra stops and cross-border requirements.</p>
+      <section className={styles.ratesSection} id="rates">
+        <div className={styles.ratesIntro}>
+          <span className={styles.eyebrow}>STARTING RATES</span>
+          <h2>Clear guidance before you confirm.</h2>
+          <p>
+            Final fare depends on the route, timing, ERP, parking, waiting time, extra stops and cross-border requirements.
+          </p>
+          <div className={styles.connectionNote}>
+            <span />
+            {loadingRates
+              ? "Connecting to A3 Finance rates…"
+              : rateCards.length > 0
+                ? "Live rates connected to A3 Finance"
+                : "Showing standard AEJKY starting rates"}
+          </div>
         </div>
-        <div className={styles.connectionNote}>
-          <span className={styles.connectionDot} />
-          {loadingRates ? "Connecting to A3 Finance rates…" : rateCards.length > 0 ? "Live rates connected to A3 Finance" : "Showing standard AEJKY starting rates"}
-        </div>
-        <div className={styles.rateTable}>
-          {displayRates.map((rate, index) => (
-            <div className={styles.rateRow} key={`${rate.id}-${rate.vehicle}-${rate.service}`}>
-              <span className={styles.rateNo}>{String(index + 1).padStart(2, "0")}</span>
-              <div><strong>{rate.vehicle}</strong><small>{rate.service}</small></div>
-              <b>{rate.price}</b>
-              <button type="button" onClick={() => chooseRate(rate.id)}>Get Quote →</button>
-            </div>
+
+        <div className={styles.rateGrid}>
+          {displayRates.map((rate) => (
+            <article key={`${rate.id}-${rate.vehicle}-${rate.service}`}>
+              <span>{rate.vehicle}</span>
+              <h3>{rate.service}</h3>
+              <strong>{rate.price}</strong>
+              <button type="button" onClick={() => chooseRate(rate.id)}>Get quotation →</button>
+            </article>
           ))}
         </div>
       </section>
 
-      <section className={styles.about} id="about">
-        <div className={styles.aboutLogo}><img src="/aejky-limousine-logo.webp" alt="AEJKY Limousine official brand" /></div>
-        <div className={styles.aboutCopy}>
-          <span className={styles.eyebrow}>ABOUT AEJKY</span>
-          <h2>A professional journey from first message to final destination.</h2>
+      <section className={styles.assuranceSection}>
+        <div className={styles.assuranceCopy}>
+          <span className={styles.eyebrow}>WHY AEJKY</span>
+          <h2>Professional coordination from enquiry to arrival.</h2>
           <p>
-            AEJKY Limousine provides private chauffeured transport for travellers, families,
-            corporate guests and cross-border passengers. Quotation requests from this website are
-            securely recorded in A3 Finance for follow-up, pricing and operations.
+            Every website request is recorded under AEJKY Limousine in A3 Finance, helping the team follow up accurately on pricing, vehicle planning and trip details.
           </p>
-          <dl>
-            <div><dt>Business</dt><dd>AEJKY Limousine</dd></div>
-            <div><dt>UEN</dt><dd>53488486E</dd></div>
-            <div><dt>WhatsApp</dt><dd>{DISPLAY_PHONE}</dd></div>
-            <div><dt>Coverage</dt><dd>Singapore & Malaysia</dd></div>
-            <div><dt>Office</dt><dd>887C Woodlands Drive 50 #13-607</dd></div>
-            <div><dt>System</dt><dd>A3 Finance Connected</dd></div>
-          </dl>
+        </div>
+        <div className={styles.assuranceGrid}>
+          <div><span>01</span><strong>Clear quotation</strong><p>Know the agreed service and fare before confirmation.</p></div>
+          <div><span>02</span><strong>Suitable vehicle</strong><p>Vehicle planning based on passengers, luggage and route.</p></div>
+          <div><span>03</span><strong>Direct support</strong><p>WhatsApp follow-up with one clear booking reference.</p></div>
         </div>
       </section>
 
       <section className={styles.quoteSection} id="quote">
         <div className={styles.quoteIntro}>
-          <span className={styles.eyebrow}>PRIVATE QUOTATION</span>
-          <h2>Tell us where you need to go.</h2>
-          <p>Submit the request to AEJKY through A3 Finance. You will receive a reference number, and our team can follow up through your preferred contact method.</p>
-          <div className={styles.contactCards}>
-            <a href={whatsappUrl(whatsappNumber, message)} target="_blank" rel="noreferrer"><strong>WhatsApp</strong><span>{DISPLAY_PHONE}</span></a>
-            <button type="button" onClick={copyForSocial}><strong>Telegram</strong><span>Copy enquiry message</span></button>
-            <button type="button" onClick={copyForSocial}><strong>WeChat</strong><span>Copy enquiry message</span></button>
+          <span className={styles.eyebrow}>QUOTATION REQUEST</span>
+          <h2>Tell us your trip details.</h2>
+          <p>
+            Complete the essential information below. The request is saved to A3 Finance and our team will contact you to confirm the fare and availability.
+          </p>
+          <div className={styles.quoteContact}>
+            <span>Prefer direct assistance?</span>
+            <a href={whatsappUrl(whatsappNumber, message)} target="_blank" rel="noreferrer">
+              WhatsApp {DISPLAY_PHONE}
+            </a>
           </div>
-          {copied && <div className={styles.toast}>Quotation message copied.</div>}
-          <div className={styles.financeCard}>
-            <span>A3 FINANCE CONNECTION</span>
-            <strong>Website quotations are stored under AEJKY Limousine.</strong>
-            <a href={`${A3_FINANCE_URL}/login`} target="_blank" rel="noreferrer">Staff Login →</a>
-          </div>
+          <dl className={styles.businessDetails}>
+            <div><dt>Business</dt><dd>AEJKY Limousine</dd></div>
+            <div><dt>UEN</dt><dd>53488486E</dd></div>
+            <div><dt>Coverage</dt><dd>Singapore & Malaysia</dd></div>
+            <div><dt>Office</dt><dd>887C Woodlands Drive 50 #13-607</dd></div>
+          </dl>
         </div>
 
         <form className={styles.form} onSubmit={submitQuote}>
-          <div className={styles.formTop}><span>AEJKY LIMOUSINE</span><strong>Quotation Request</strong></div>
-          <input className={styles.honeypot} tabIndex={-1} autoComplete="off" aria-hidden="true" value={form.company} onChange={(event) => update("company", event.target.value)} />
-          <div className={styles.formGrid}>
-            <label><span>Full Name *</span><input required value={form.customer_name} onChange={(event) => update("customer_name", event.target.value)} /></label>
-            <label><span>Contact Number *</span><input required inputMode="tel" value={form.phone} onChange={(event) => update("phone", event.target.value)} /></label>
-            <label><span>Email</span><input type="email" value={form.email} onChange={(event) => update("email", event.target.value)} /></label>
-            <label><span>Preferred Contact *</span><select value={form.preferred_contact} onChange={(event) => update("preferred_contact", event.target.value as QuoteForm["preferred_contact"])}><option value="whatsapp">WhatsApp</option><option value="telegram">Telegram</option><option value="wechat">WeChat</option><option value="phone">Phone</option></select></label>
-            <label><span>Service *</span><select value={form.service_type} onChange={(event) => { update("service_type", event.target.value); update("rate_card_id", ""); }}>{services.map((service) => <option key={service.value} value={service.value}>{service.title}</option>)}<option value="charter">Charter</option><option value="jb_sg">Johor → Singapore</option></select></label>
-            <label><span>Vehicle</span><select value={form.vehicle_type_id} onChange={(event) => update("vehicle_type_id", event.target.value)}><option value="">Let AEJKY recommend</option>{vehicleTypes.map((vehicle) => <option key={vehicle.id} value={vehicle.id}>{vehicle.name}{vehicle.passenger_capacity ? ` · ${vehicle.passenger_capacity} pax` : ""}</option>)}</select></label>
-            <label><span>Trip Date *</span><input required type="date" value={form.trip_date} onChange={(event) => update("trip_date", event.target.value)} /></label>
-            <label><span>Pickup Time</span><input type="time" value={form.pickup_time} onChange={(event) => update("pickup_time", event.target.value)} /></label>
-            <label><span>Passengers</span><input type="number" min="1" max="100" value={form.passengers} onChange={(event) => update("passengers", event.target.value)} /></label>
-            <label><span>Luggage</span><input type="number" min="0" max="100" value={form.luggage} onChange={(event) => update("luggage", event.target.value)} /></label>
-            {rateCards.length > 0 && <label className={styles.full}><span>Rate Option</span><select value={form.rate_card_id} onChange={(event) => selectRate(event.target.value)}><option value="">Request custom quotation</option>{rateCards.map((rate) => <option key={rate.id} value={rate.id}>{rate.vehicle?.name || "Vehicle"} · {rate.name} · {money(rate.base_amount, rate.currency)}</option>)}</select></label>}
-            <label className={styles.full}><span>Pickup Location *</span><input required placeholder="Airport, hotel, address or landmark" value={form.pickup_location} onChange={(event) => update("pickup_location", event.target.value)} /></label>
-            <label className={styles.full}><span>Drop-off Location *</span><input required placeholder="Destination address or landmark" value={form.dropoff_location} onChange={(event) => update("dropoff_location", event.target.value)} /></label>
-            <label className={styles.full}><span>Special Requests</span><textarea rows={4} placeholder="Flight number, child seat, extra stop, return details or other requirements" value={form.special_requests} onChange={(event) => update("special_requests", event.target.value)} /></label>
-            <label className={`${styles.full} ${styles.checkLabel}`}><input type="checkbox" checked={form.return_trip} onChange={(event) => update("return_trip", event.target.checked)} /><span>Return trip required</span></label>
-            <label className={`${styles.full} ${styles.checkLabel}`}><input required type="checkbox" checked={form.consent_accepted} onChange={(event) => update("consent_accepted", event.target.checked)} /><span>I agree that AEJKY Limousine may use these details to prepare and manage my quotation request. *</span></label>
+          <div className={styles.formHeading}>
+            <span>AEJKY LIMOUSINE</span>
+            <strong>Private Quotation</strong>
           </div>
-          {referenceNo && <div className={styles.successBox}><span>REQUEST SAVED TO A3 FINANCE</span><strong>{referenceNo}</strong><p>Keep this reference for follow-up.</p><a href={whatsappUrl(whatsappNumber, message)} target="_blank" rel="noreferrer">Send reference through WhatsApp →</a></div>}
+
+          <input
+            className={styles.honeypot}
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+            value={form.company}
+            onChange={(event) => update("company", event.target.value)}
+          />
+
+          <div className={styles.formGrid}>
+            <label>
+              <span>Full Name *</span>
+              <input required value={form.customer_name} onChange={(event) => update("customer_name", event.target.value)} />
+            </label>
+            <label>
+              <span>Contact Number *</span>
+              <input required inputMode="tel" value={form.phone} onChange={(event) => update("phone", event.target.value)} />
+            </label>
+            <label>
+              <span>Service *</span>
+              <select
+                value={form.service_type}
+                onChange={(event) => {
+                  update("service_type", event.target.value);
+                  update("rate_card_id", "");
+                }}
+              >
+                {services.map((service) => <option key={service.value} value={service.value}>{service.title}</option>)}
+                <option value="charter">Charter</option>
+                <option value="jb_sg">Johor → Singapore</option>
+              </select>
+            </label>
+            <label>
+              <span>Trip Date *</span>
+              <input required type="date" value={form.trip_date} onChange={(event) => update("trip_date", event.target.value)} />
+            </label>
+            <label className={styles.full}>
+              <span>Pickup Location *</span>
+              <input required placeholder="Airport, hotel, address or landmark" value={form.pickup_location} onChange={(event) => update("pickup_location", event.target.value)} />
+            </label>
+            <label className={styles.full}>
+              <span>Drop-off Location *</span>
+              <input required placeholder="Destination address or landmark" value={form.dropoff_location} onChange={(event) => update("dropoff_location", event.target.value)} />
+            </label>
+          </div>
+
+          <details className={styles.moreDetails}>
+            <summary>Additional trip details <span>+</span></summary>
+            <div className={styles.formGrid}>
+              <label>
+                <span>Email</span>
+                <input type="email" value={form.email} onChange={(event) => update("email", event.target.value)} />
+              </label>
+              <label>
+                <span>Preferred Contact</span>
+                <select value={form.preferred_contact} onChange={(event) => update("preferred_contact", event.target.value as QuoteForm["preferred_contact"])}>
+                  <option value="whatsapp">WhatsApp</option>
+                  <option value="telegram">Telegram</option>
+                  <option value="wechat">WeChat</option>
+                  <option value="phone">Phone</option>
+                </select>
+              </label>
+              <label>
+                <span>Pickup Time</span>
+                <input type="time" value={form.pickup_time} onChange={(event) => update("pickup_time", event.target.value)} />
+              </label>
+              <label>
+                <span>Vehicle</span>
+                <select value={form.vehicle_type_id} onChange={(event) => update("vehicle_type_id", event.target.value)}>
+                  <option value="">Let AEJKY recommend</option>
+                  {vehicleTypes.map((vehicle) => (
+                    <option key={vehicle.id} value={vehicle.id}>
+                      {vehicle.name}{vehicle.passenger_capacity ? ` · ${vehicle.passenger_capacity} pax` : ""}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <span>Passengers</span>
+                <input type="number" min="1" max="100" value={form.passengers} onChange={(event) => update("passengers", event.target.value)} />
+              </label>
+              <label>
+                <span>Luggage</span>
+                <input type="number" min="0" max="100" value={form.luggage} onChange={(event) => update("luggage", event.target.value)} />
+              </label>
+              {rateCards.length > 0 && (
+                <label className={styles.full}>
+                  <span>Rate Option</span>
+                  <select value={form.rate_card_id} onChange={(event) => selectRate(event.target.value)}>
+                    <option value="">Request custom quotation</option>
+                    {rateCards.map((rate) => (
+                      <option key={rate.id} value={rate.id}>
+                        {rate.vehicle?.name || "Vehicle"} · {rate.name} · {money(rate.base_amount, rate.currency)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              <label className={styles.full}>
+                <span>Special Requests</span>
+                <textarea
+                  rows={3}
+                  placeholder="Flight number, child seat, extra stop, return details or other requirements"
+                  value={form.special_requests}
+                  onChange={(event) => update("special_requests", event.target.value)}
+                />
+              </label>
+              <label className={`${styles.full} ${styles.checkLabel}`}>
+                <input type="checkbox" checked={form.return_trip} onChange={(event) => update("return_trip", event.target.checked)} />
+                <span>Return trip required</span>
+              </label>
+            </div>
+          </details>
+
+          <label className={styles.consentLabel}>
+            <input required type="checkbox" checked={form.consent_accepted} onChange={(event) => update("consent_accepted", event.target.checked)} />
+            <span>I agree that AEJKY Limousine may use these details to prepare and manage my quotation request. *</span>
+          </label>
+
+          {referenceNo && (
+            <div className={styles.successBox}>
+              <span>REQUEST SAVED TO A3 FINANCE</span>
+              <strong>{referenceNo}</strong>
+              <a href={whatsappUrl(whatsappNumber, message)} target="_blank" rel="noreferrer">
+                Send reference through WhatsApp →
+              </a>
+            </div>
+          )}
           {submitError && <div className={styles.errorBox}>{submitError}</div>}
-          <p className={styles.consent}>Do not submit payment-card, NRIC or passport details in this form.</p>
-          <button className={styles.submit} type="submit" disabled={submitting}>{submitting ? "Saving to A3 Finance…" : "Submit Quotation Request"}<span>→</span></button>
+
+          <p className={styles.privacyNote}>Do not submit payment-card, NRIC or passport details.</p>
+          <button className={styles.submit} type="submit" disabled={submitting}>
+            {submitting ? "Saving to A3 Finance…" : "Submit Quotation Request"}
+            <span>→</span>
+          </button>
         </form>
       </section>
 
       <section className={styles.legal}>
-        <details><summary>Terms & Conditions <span>+</span></summary><div><p>A quotation request is not a confirmed booking. A trip is confirmed only after AEJKY Limousine provides written acceptance and fare confirmation.</p><p>Starting rates may exclude ERP, parking, tolls, waiting time, midnight surcharge, extra stops and other agreed charges. Cancellation, amendment and no-show charges depend on the confirmed booking terms.</p><p>Passengers are responsible for valid travel documents on cross-border trips and for declaring passenger and luggage requirements accurately.</p></div></details>
-        <details><summary>Privacy Notice <span>+</span></summary><div><p>Information submitted is used to prepare quotations, coordinate transport, communicate with customers and maintain operational records in A3 Finance. It may be shared with authorised staff and assigned drivers only where necessary to fulfil the service.</p><p>Do not submit payment-card, NRIC or passport details through this form. Contact AEJKY Limousine to request access, correction or deletion where permitted by applicable requirements.</p></div></details>
+        <details>
+          <summary>Terms & Conditions <span>+</span></summary>
+          <div>
+            <p>A quotation request is not a confirmed booking. A trip is confirmed only after AEJKY Limousine provides written acceptance and fare confirmation.</p>
+            <p>Starting rates may exclude ERP, parking, tolls, waiting time, midnight surcharge, extra stops and other agreed charges.</p>
+          </div>
+        </details>
+        <details>
+          <summary>Privacy Notice <span>+</span></summary>
+          <div>
+            <p>Information submitted is used to prepare quotations, coordinate transport, communicate with customers and maintain operational records in A3 Finance.</p>
+            <p>Do not submit payment-card, NRIC or passport details through this form.</p>
+          </div>
+        </details>
       </section>
 
       <footer className={styles.footer}>
-        <div className={styles.footerBrand}><img src="/aejky-limousine-logo.webp" alt="AEJKY Limousine" /><span><strong>AEJKY LIMOUSINE</strong><small>UEN 53488486E</small></span></div>
-        <div className={styles.footerNav}><button onClick={() => goTo("services")}>Services</button><button onClick={() => goTo("rates")}>Rates</button><button onClick={() => goTo("quote")}>Quotation</button><a href={`${A3_FINANCE_URL}/login`} target="_blank" rel="noreferrer">A3 Finance Staff</a></div>
-        <p>© {new Date().getFullYear()} AEJKY Limousine. Website quotation system connected to A3 Finance.</p>
+        <div className={styles.footerBrand}>
+          <img src="/aejky-limousine-logo.webp" alt="AEJKY Limousine" />
+          <span><strong>AEJKY LIMOUSINE</strong><small>UEN 53488486E</small></span>
+        </div>
+        <div className={styles.footerNav}>
+          <button type="button" onClick={() => goTo("services")}>Services</button>
+          <button type="button" onClick={() => goTo("rates")}>Rates</button>
+          <button type="button" onClick={() => goTo("quote")}>Quotation</button>
+          <a href={`${A3_FINANCE_URL}/login`} target="_blank" rel="noreferrer">Staff Login</a>
+        </div>
+        <p>© {new Date().getFullYear()} AEJKY Limousine. Premium chauffeur service in Singapore and Malaysia.</p>
       </footer>
 
       <div className={styles.mobileBar}>
