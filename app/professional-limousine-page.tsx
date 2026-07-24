@@ -152,6 +152,15 @@ function serviceLabel(value: string) {
   return services.find((service) => service.value === value)?.title || value.replaceAll("_", " ");
 }
 
+function vehicleGroup(vehicle: VehicleType) {
+  const normalized = vehicle.name.toLowerCase().replaceAll("–", "-");
+  const capacity = Number(vehicle.passenger_capacity || 0);
+
+  if (capacity === 5 || /\b5\s*-?\s*seater\b/.test(normalized)) return "five";
+  if (capacity === 7 || /\b7\s*-?\s*seater\b/.test(normalized)) return "seven";
+  return "other";
+}
+
 function money(amount: number, currency = "SGD") {
   try {
     return new Intl.NumberFormat("en-SG", {
@@ -204,6 +213,23 @@ export default function ProfessionalLimousinePage() {
     () => rateCards.find((rate) => String(rate.id) === form.rate_card_id) || null,
     [form.rate_card_id, rateCards],
   );
+  const selectedVehicle = useMemo(
+    () => vehicleTypes.find((vehicle) => String(vehicle.id) === form.vehicle_type_id) || null,
+    [form.vehicle_type_id, vehicleTypes],
+  );
+  const groupedVehicles = useMemo(() => {
+    const groups: Record<"five" | "seven" | "other", VehicleType[]> = {
+      five: [],
+      seven: [],
+      other: [],
+    };
+
+    vehicleTypes.forEach((vehicle) => groups[vehicleGroup(vehicle)].push(vehicle));
+    Object.values(groups).forEach((group) =>
+      group.sort((left, right) => left.name.localeCompare(right.name)),
+    );
+    return groups;
+  }, [vehicleTypes]);
 
   const displayRates = useMemo(() => {
     if (rateCards.length === 0) return fallbackRates;
@@ -228,6 +254,7 @@ export default function ProfessionalLimousinePage() {
         form.email ? `Email: ${form.email}` : "",
         `Preferred contact: ${form.preferred_contact}`,
         `Service: ${serviceLabel(form.service_type)}`,
+        `Vehicle: ${selectedVehicle?.name || "Let AEJKY recommend"}`,
         `Date / time: ${form.trip_date || "Flexible"} ${form.pickup_time}`.trim(),
         `Pickup: ${form.pickup_location || "-"}`,
         `Drop-off: ${form.dropoff_location || "-"}`,
@@ -241,7 +268,7 @@ export default function ProfessionalLimousinePage() {
       ]
         .filter(Boolean)
         .join("\n"),
-    [form, referenceNo, selectedRate],
+    [form, referenceNo, selectedRate, selectedVehicle],
   );
 
   function update<K extends keyof QuoteForm>(key: K, value: QuoteForm[K]) {
@@ -529,6 +556,39 @@ export default function ProfessionalLimousinePage() {
               </select>
             </label>
             <label>
+              <span>Vehicle Type</span>
+              <select value={form.vehicle_type_id} onChange={(event) => update("vehicle_type_id", event.target.value)}>
+                <option value="">Let AEJKY recommend</option>
+                {groupedVehicles.five.length > 0 && (
+                  <optgroup label="5-Seater Vehicles">
+                    {groupedVehicles.five.map((vehicle) => (
+                      <option key={vehicle.id} value={vehicle.id}>
+                        {vehicle.name}{vehicle.passenger_capacity ? ` · ${vehicle.passenger_capacity} pax` : ""}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+                {groupedVehicles.seven.length > 0 && (
+                  <optgroup label="7-Seater Vehicles">
+                    {groupedVehicles.seven.map((vehicle) => (
+                      <option key={vehicle.id} value={vehicle.id}>
+                        {vehicle.name}{vehicle.passenger_capacity ? ` · ${vehicle.passenger_capacity} pax` : ""}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+                {groupedVehicles.other.length > 0 && (
+                  <optgroup label="Other Vehicles">
+                    {groupedVehicles.other.map((vehicle) => (
+                      <option key={vehicle.id} value={vehicle.id}>
+                        {vehicle.name}{vehicle.passenger_capacity ? ` · ${vehicle.passenger_capacity} pax` : ""}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+              </select>
+            </label>
+            <label>
               <span>Trip Date *</span>
               <input required type="date" value={form.trip_date} onChange={(event) => update("trip_date", event.target.value)} />
             </label>
@@ -561,17 +621,6 @@ export default function ProfessionalLimousinePage() {
               <label>
                 <span>Pickup Time</span>
                 <input type="time" value={form.pickup_time} onChange={(event) => update("pickup_time", event.target.value)} />
-              </label>
-              <label>
-                <span>Vehicle</span>
-                <select value={form.vehicle_type_id} onChange={(event) => update("vehicle_type_id", event.target.value)}>
-                  <option value="">Let AEJKY recommend</option>
-                  {vehicleTypes.map((vehicle) => (
-                    <option key={vehicle.id} value={vehicle.id}>
-                      {vehicle.name}{vehicle.passenger_capacity ? ` · ${vehicle.passenger_capacity} pax` : ""}
-                    </option>
-                  ))}
-                </select>
               </label>
               <label>
                 <span>Passengers</span>
