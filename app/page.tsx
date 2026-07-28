@@ -2,14 +2,29 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type Vehicle = { id:number; name:string; passenger_capacity:number|null; luggage_capacity?:number|null; description?:string; image_url?:string };
+type Vehicle = { id:number; name:string; passenger_capacity?:number|null; luggage_capacity?:number|null; max_passengers?:number|null; max_luggage?:number|null; passengers?:number|null; luggage?:number|null; passengerCapacity?:number|null; luggageCapacity?:number|null; description?:string; image_url?:string };
 type RateCard = { id:number; vehicle_type_id:number; name:string; service_type:string; pricing_method:string; base_amount:number; currency:string; minimum_hours:number|null; vehicle:Vehicle };
-type AdditionalCharge={id:string;code:string;name:string;charge_type:string;amount:number;currency:string;description:string};
+type AdditionalCharge={id:string;code:string;name:string;charge_type:string;amount:number;currency:string;description:string;is_percentage?:boolean};
 type RatePayload = { source?:string; updated_at?:string|null; currency?:string; vehicle_types?:Vehicle[]; rate_cards?:RateCard[]; additional_charges?:AdditionalCharge[] };
 
 const GOOGLE_REVIEW_URL = "https://www.google.com/search?q=A3+Group+SG+Google+Reviews";
-const FINANCE_URL = "https://finance.a3group.sg";
 const WHATSAPP = "6584849004";
+
+const capacityFallbacks:Record<string,{passengers:number;luggage:number}>={
+  "4 Seater Sedan":{passengers:4,luggage:2},
+  "6 Seater MPV":{passengers:6,luggage:4},
+  "7 Seater Maxi Cab":{passengers:7,luggage:5},
+  "Alphard / Vellfire":{passengers:6,luggage:4},
+  "13 Seater Minibus":{passengers:13,luggage:10},
+  "23 Seater Mini Coach":{passengers:23,luggage:18},
+  "45 Seater Coach":{passengers:45,luggage:35},
+};
+function capacity(vehicle:Vehicle){
+  const fallback=capacityFallbacks[vehicle.name]||{passengers:Number(vehicle.name.match(/\d+/)?.[0]||0),luggage:0};
+  const passengers=Number(vehicle.passenger_capacity ?? vehicle.passengerCapacity ?? vehicle.max_passengers ?? vehicle.passengers ?? 0) || fallback.passengers;
+  const luggage=Number(vehicle.luggage_capacity ?? vehicle.luggageCapacity ?? vehicle.max_luggage ?? vehicle.luggage ?? 0) || fallback.luggage;
+  return {passengers,luggage};
+}
 
 const services = [
   ["Airport Transfer", "Changi Airport pickup and drop-off with professional luggage assistance."],
@@ -22,8 +37,8 @@ const serviceLabels:Record<string,string> = {
   airport_arrival:"Airport Arrival",
   airport_departure:"Airport Departure",
   point_to_point:"Point to Point",
-  hourly_disposal:"Hourly Disposal",
-  sg_jb:"Singapore to Johor",
+  hourly_disposal:"Hourly Disposal (minimum 3 hours)",
+  sg_jb:"Cross Border SG to JB (from)",
 };
 
 export default function Home(){
@@ -87,21 +102,21 @@ export default function Home(){
     </section>
 
     <section className="pricing" id="rates">
-      <div className="title"><p>LIVE VEHICLE RATES</p><h2>Rates managed by A3 Finance.</h2><span>Published rate changes in Finance appear here automatically. Extra stops, waiting, parking, tolls and special requests may incur additional charges.</span><small className={rateError?"liveStatus error":"liveStatus"}>● {rateError||`Connected to ${payload.source||"A3 Finance"}`}</small></div>
-      {visibleRates.length ? <div className="rateMatrixWrap"><table className="rateMatrix"><thead><tr><th>Service</th>{vehicles.map(vehicle=><th key={vehicle.id}>{vehicle.name}</th>)}</tr></thead><tbody>{Array.from(new Set(visibleRates.map(rate=>rate.service_type))).map(service=><tr key={service}><th>{serviceLabels[service]||service.replaceAll("_"," ")}</th>{vehicles.map(vehicle=>{const rate=visibleRates.find(item=>item.service_type===service&&item.vehicle_type_id===vehicle.id);return <td key={vehicle.id}>{rate?money(rate.base_amount,rate.currency):"—"}{rate?.pricing_method==="per_hour"?<small>/hour</small>:null}</td>})}</tr>)}</tbody></table></div> : <div className="rateEmpty">No published rates are available yet. Publish rates in Finance Rate Management, then refresh this page.</div>}
-      {(payload.additional_charges||[]).length>0&&<div className="additionalCharges"><h3>Additional charges</h3><div className="chargeGrid">{(payload.additional_charges||[]).map(charge=><article key={charge.id}><strong>{charge.name}</strong><b>{charge.charge_type==="actual_cost"?"Actual cost":money(charge.amount,charge.currency)}{charge.charge_type==="per_hour"?<small>/hour</small>:charge.charge_type==="per_stop"?<small>/stop</small>:charge.charge_type==="per_seat"?<small>/seat</small>:null}</b><p>{charge.description}</p></article>)}</div></div>}
-      <div className="rateActions"><a className="gold" href="/book">Book with these rates</a><a className="financeLink" href={FINANCE_URL} target="_blank" rel="noreferrer">Open finance.a3group.sg ↗</a></div>
+      <div className="title"><p>LIVE VEHICLE RATES</p><h2>Live limousine rates.</h2><span>Published rate changes appear here automatically. Extra stops, waiting, parking, tolls and special requests may incur additional charges.</span><small className={rateError?"liveStatus error":"liveStatus"}>● {rateError||`Live rates connected`}</small></div>
+      {visibleRates.length ? <div className="rateMatrixWrap"><table className="rateMatrix"><thead><tr><th>Service</th>{vehicles.map(vehicle=><th key={vehicle.id}>{vehicle.name}<small className="rateCapacity">{capacity(vehicle).passengers} pax · {capacity(vehicle).luggage} luggage</small></th>)}</tr></thead><tbody>{Array.from(new Set(visibleRates.map(rate=>rate.service_type))).map(service=><tr key={service}><th>{serviceLabels[service]||service.replaceAll("_"," ")}</th>{vehicles.map(vehicle=>{const rate=visibleRates.find(item=>item.service_type===service&&item.vehicle_type_id===vehicle.id);return <td key={vehicle.id}>{rate?money(rate.base_amount,rate.currency):"—"}{rate?.pricing_method==="per_hour"?<small>/hour</small>:null}</td>})}</tr>)}</tbody></table></div> : <div className="rateEmpty">No published rates are available yet. Publish rates in Finance Rate Management, then refresh this page.</div>}
+      {(payload.additional_charges||[]).length>0&&<div className="additionalCharges"><h3>Additional charges</h3><div className="chargeGrid">{(payload.additional_charges||[]).map(charge=><article key={charge.id}><strong>{charge.name}</strong><b>{charge.charge_type==="actual_cost"?"Actual cost":charge.charge_type==="percentage"||charge.is_percentage?`${charge.amount}%`:money(charge.amount,charge.currency)}{charge.charge_type==="per_hour"?<small>/hour</small>:charge.charge_type==="per_stop"?<small>/stop</small>:charge.charge_type==="per_seat"?<small>/seat</small>:null}</b><p>{charge.description}</p></article>)}</div></div>}
+      <div className="rateActions"><a className="gold" href="/book">Book with these rates</a></div>
     </section>
 
     <section className="section cream" id="fleet"><div className="title"><p>THE A3 FLEET</p><h2>Premium comfort for every group.</h2></div>
-      <div className="grid three fleet">{vehicles.map(vehicle=><article key={vehicle.id}>{vehicle.image_url?<img className="vehiclePhoto" src={vehicle.image_url} alt={vehicle.name}/>:<div className="vehicle">◆<small>CHAUFFEUR VEHICLE</small></div>}<h3>{vehicle.name}</h3><p>{vehicle.description||`${vehicle.passenger_capacity?`Up to ${vehicle.passenger_capacity} passengers`:"Premium private transport"}${vehicle.luggage_capacity?` · ${vehicle.luggage_capacity} luggage`:""}.`}</p><a href={`/book?vehicle=${vehicle.id}`}>Book this vehicle →</a></article>)}</div>
+      <div className="grid three fleet">{vehicles.map(vehicle=>{const limits=capacity(vehicle);return <article key={vehicle.id}>{vehicle.image_url?<img className="vehiclePhoto" src={vehicle.image_url} alt={vehicle.name}/>:<div className="vehicle">◆<small>CHAUFFEUR VEHICLE</small></div>}<h3>{vehicle.name}</h3><div className="vehicleCapacity"><span><strong>{limits.passengers}</strong> Passengers</span><span><strong>{limits.luggage}</strong> Luggage</span></div><p>{vehicle.description||"Premium private transport."}</p><a href={`/book?vehicle=${vehicle.id}`}>Book this vehicle →</a></article>})}</div>
     </section>
 
     <section className="reviews"><div><p className="eyebrow">GOOGLE REVIEWS</p><h2>Your experience matters.</h2><p>Reviews are handled directly on Google. This website does not collect or publish customer reviews.</p><div className="stars">★★★★★</div><a className="gold" href={GOOGLE_REVIEW_URL} target="_blank" rel="noreferrer">Open Google Reviews</a></div>
       <div className="reviewNotice"><strong>No website review form</strong><p>Customers are taken directly to Google to read or leave a review.</p></div>
     </section>
 
-    <section className="bookingCta"><p className="eyebrow">RESERVE YOUR JOURNEY</p><h2>Send your booking directly to A3 Finance.</h2><p>The online form creates a pending booking for staff confirmation and returns a booking reference.</p><div className="actions"><a className="gold" href="/book">Open Booking Page</a><a className="ghost darkGhost" href={`https://wa.me/${WHATSAPP}`} target="_blank" rel="noreferrer">WhatsApp</a></div></section>
+    <section className="bookingCta"><p className="eyebrow">RESERVE YOUR JOURNEY</p><h2>Send your booking directly to our team.</h2><p>The online form creates a pending booking for staff confirmation and returns a booking reference.</p><div className="actions"><a className="gold" href="/book">Open Booking Page</a><a className="ghost darkGhost" href={`https://wa.me/${WHATSAPP}`} target="_blank" rel="noreferrer">WhatsApp</a></div></section>
 
     <footer><div className="logo"><b>A3</b><span><strong>A3 GROUP SG</strong><small>PRIVATE CHAUFFEUR</small></span></div><p>Airport Transfer • Hourly Chauffeur • Point-to-Point • Singapore ↔ Johor Bahru</p><div className="footlinks"><a href="/book">Book Now</a><a href={GOOGLE_REVIEW_URL} target="_blank" rel="noreferrer">Google Review</a></div></footer>
   </main>
