@@ -5,7 +5,12 @@ export const dynamic = "force-dynamic";
 const FINANCE_BASE_URL = (
   process.env.NEXT_PUBLIC_A3_FINANCE_URL || "https://finance.a3group.sg"
 ).replace(/\/+$/, "");
-const FINANCE_ORIGIN = (
+
+const RATE_ORIGIN = (
+  process.env.A3_FINANCE_RATE_API_URL || `${FINANCE_BASE_URL}/api/public/rate-matrix`
+).replace(/\/+$/, "");
+
+const BOOKING_ORIGIN = (
   process.env.A3_FINANCE_API_URL || `${FINANCE_BASE_URL}/api/public/limousine`
 ).replace(/\/+$/, "");
 
@@ -21,11 +26,11 @@ async function readJson(response: Response) {
   }
 }
 
-async function upstreamFetch(init?: RequestInit) {
+async function upstreamFetch(url: string, init?: RequestInit) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 12_000);
   try {
-    return await fetch(FINANCE_ORIGIN, {
+    return await fetch(url, {
       ...init,
       cache: "no-store",
       signal: controller.signal,
@@ -41,16 +46,16 @@ async function upstreamFetch(init?: RequestInit) {
 
 export async function GET() {
   try {
-    const response = await upstreamFetch();
+    const response = await upstreamFetch(RATE_ORIGIN);
     const payload = await readJson(response);
     if (!response.ok) {
-      return publicError("Unable to load live AEJKY rates. Standard rates are still available.", 502);
+      return publicError("Unable to load live A3 Finance rates.", 502);
     }
     return NextResponse.json(payload, {
       headers: { "Cache-Control": "no-store" },
     });
   } catch {
-    return publicError("Unable to load live AEJKY rates. Standard rates are still available.", 502);
+    return publicError("Unable to load live A3 Finance rates.", 502);
   }
 }
 
@@ -72,7 +77,7 @@ export async function POST(request: Request) {
   delete body.started_at;
 
   try {
-    const response = await upstreamFetch({
+    const response = await upstreamFetch(BOOKING_ORIGIN, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -82,7 +87,7 @@ export async function POST(request: Request) {
     if (!response.ok) {
       const safeMessage =
         response.status >= 500
-          ? "A3 Finance is temporarily unavailable. Please send the prepared request through WhatsApp."
+          ? "A3 Finance is temporarily unavailable. Please send the request through WhatsApp."
           : String(payload.error || "Unable to save the quotation request.");
       return publicError(safeMessage, response.status >= 500 ? 502 : response.status);
     }
@@ -93,7 +98,7 @@ export async function POST(request: Request) {
     });
   } catch {
     return publicError(
-      "A3 Finance is temporarily unavailable. Please send the prepared request through WhatsApp.",
+      "A3 Finance is temporarily unavailable. Please send the request through WhatsApp.",
       502,
     );
   }

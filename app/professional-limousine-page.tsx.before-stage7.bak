@@ -37,6 +37,14 @@ const services = [
   },
 ] as const;
 
+const fallbackRates = [
+  { id: -1, vehicle: "4-Seater", service: "Arrival Meet & Greet", price: "From S$55" },
+  { id: -2, vehicle: "4-Seater", service: "Driveway Pickup", price: "From S$50" },
+  { id: -3, vehicle: "6-Seater", service: "Arrival Meet & Greet", price: "From S$60" },
+  { id: -4, vehicle: "6-Seater", service: "Driveway Pickup", price: "From S$55" },
+  { id: -5, vehicle: "4-Seater", service: "Hourly Disposal · 3-hour minimum", price: "From S$40/hr" },
+  { id: -6, vehicle: "6-Seater", service: "Hourly Disposal · 3-hour minimum", price: "From S$45/hr" },
+];
 
 const trustPoints = [
   "Professional chauffeurs",
@@ -224,6 +232,18 @@ export default function ProfessionalLimousinePage() {
     return groups;
   }, [vehicleTypes]);
 
+  const displayRates = useMemo(() => {
+    if (rateCards.length === 0) return fallbackRates;
+    return rateCards.slice(0, 6).map((rate) => {
+      const hourly = rate.pricing_method === "per_hour";
+      return {
+        id: rate.id,
+        vehicle: rate.vehicle?.name || "AEJKY Vehicle",
+        service: rate.name || serviceLabel(rate.service_type),
+        price: `${money(Number(rate.base_amount || 0), rate.currency || "SGD")}${hourly ? "/hr" : ""}`,
+      };
+    });
+  }, [rateCards]);
 
   const message = useMemo(
     () =>
@@ -440,11 +460,25 @@ export default function ProfessionalLimousinePage() {
           <p>
             Final fare depends on the route, timing, ERP, parking, waiting time, extra stops and cross-border requirements.
           </p>
+          <div className={styles.connectionNote}>
+            <span />
+            {loadingRates
+              ? "Connecting to A3 Finance rates…"
+              : rateCards.length > 0
+                ? "Live rates connected to A3 Finance"
+                : "Showing standard AEJKY starting rates"}
+          </div>
         </div>
 
-        <div className={styles.connectionNote}>
-          <span />
-          Prices and vehicle groups shown below are managed directly from the A3 Finance Website Catalogue.
+        <div className={styles.rateGrid}>
+          {displayRates.map((rate) => (
+            <article key={`${rate.id}-${rate.vehicle}-${rate.service}`}>
+              <span>{rate.vehicle}</span>
+              <h3>{rate.service}</h3>
+              <strong>{rate.price}</strong>
+              <button type="button" onClick={() => chooseRate(rate.id)}>Get quotation →</button>
+            </article>
+          ))}
         </div>
       </section>
 

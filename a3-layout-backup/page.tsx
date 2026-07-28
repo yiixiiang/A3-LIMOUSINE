@@ -1,8 +1,8 @@
 "use client";
-import {FormEvent,useEffect,useMemo,useState} from "react";
+import {FormEvent,useState} from "react";
 
 const CONTACTS={
- whatsapp:"6590000000",
+ whatsapp:"6584849004",
  telegram:"A3GROUPSG_BOT",
  wechat:"A3GROUPSG",
  instagram:"https://instagram.com/a3groupsg",
@@ -22,86 +22,20 @@ const tours=[
  ["6 HOURS","Singapore Discovery","Marina Bay · Little India · Kampong Glam · Local food"],
  ["8 HOURS","Best of Singapore","Jewel · Heritage districts · Orchard · Sentosa · Clarke Quay"]
 ];
-type VehicleRate={
- id:string;
- vehicle_name:string;
- category:string;
- transfer_price:number|null;
- hourly_price:number|null;
- minimum_hours:number|null;
- currency:string;
- active:boolean;
- sort_order:number;
- updated_at:string;
-};
-
-const defaultRates:VehicleRate[]=[];
-
-const vehicleDescriptions:Record<string,string>={
- "5-Seater Sedan":"Best for business travellers, couples and light luggage.",
- "7-Seater MPV":"A spacious choice for families, tours and airport transfers.",
- "Luxury MPV":"Premium comfort for executives, VIP guests and special occasions."
-};
+const fleet=[
+ ["EXECUTIVE","5-Seater Sedan","Best for business travellers, couples and light luggage."],
+ ["PREMIUM","6/7-Seater MPV","A spacious choice for families, tours and airport transfers."],
+ ["VIP","Luxury MPV","Premium comfort for executives, VIP guests and special occasions."]
+];
 
 export default function Home(){
  const [open,setOpen]=useState(false);
- const [rates,setRates]=useState<VehicleRate[]>(defaultRates);
- const [vehicle,setVehicle]=useState("");
- const [rateStatus,setRateStatus]=useState("Loading live prices…");
-
- useEffect(()=>{
-  let active=true;
-  async function loadRates(){
-   try{
-    const finance=(process.env.NEXT_PUBLIC_A3_FINANCE_URL||"https://finance.a3group.sg").replace(/\/$/,"");
-    const response=await fetch(`${finance}/api/public/website-catalogue?site=limousine`,{cache:"no-store"});
-    if(!response.ok) throw new Error(`Catalogue API returned ${response.status}`);
-    const payload=await response.json();
-    const items=Array.isArray(payload.items)?payload.items:[];
-    const grouped=new Map<string,VehicleRate>();
-    for(const item of items){
-      const name=String(item.title_en||item.service_name||item.price_key);
-      const current=grouped.get(name)||{id:String(item.id),vehicle_name:name,category:String(item.category||"SERVICE"),transfer_price:null,hourly_price:null,minimum_hours:null,currency:String(item.currency||"SGD"),active:item.available!==false,sort_order:Number(item.display_order||0),updated_at:String(payload.updated_at||"")};
-      const kind=String(item.subgroup||item.category||"").toLowerCase();
-      if(kind.includes("hour")) current.hourly_price=Number(item.price); else current.transfer_price=Number(item.price);
-      grouped.set(name,current);
-    }
-    const live=[...grouped.values()].filter(r=>r.active).sort((a,b)=>a.sort_order-b.sort_order);
-    if(active){setRates(live);setVehicle(v=>live.some(r=>r.vehicle_name===v)?v:(live[0]?.vehicle_name||""));setRateStatus(live.length?"Live catalogue from A3 Finance":"Catalogue coming soon");}
-   }catch(error){
-    console.error("Unable to load vehicle rates:",error);
-    if(active){setRates([]);setRateStatus("Catalogue temporarily unavailable");}
-   }
-  }
-  loadRates();
-  const timer=window.setInterval(loadRates,60000);
-  return()=>{active=false;window.clearInterval(timer)};
- },[]);
-
- const money=(value:number|null,currency="SGD")=>
-  value===null?"Contact us":new Intl.NumberFormat("en-SG",{
-   style:"currency",currency,maximumFractionDigits:value%1===0?0:2
-  }).format(value);
-
- const selectedRate=useMemo(
-  ()=>rates.find(rate=>rate.vehicle_name===vehicle)??rates[0]??defaultRates[0],
-  [rates,vehicle]
- );
-
- const vehiclePrice={
-  transfer:!selectedRate||selectedRate.transfer_price===null
-   ?"Contact us"
-   :`${money(selectedRate!.transfer_price,selectedRate!.currency)} per trip`,
-  hourly:!selectedRate||selectedRate.hourly_price===null
-   ?"Custom quotation"
-   :`${money(selectedRate!.hourly_price,selectedRate!.currency)} per hour${selectedRate!.minimum_hours?` · ${selectedRate!.minimum_hours}-hour minimum`:""}`
- };
  const copyWechat=async()=>{await navigator.clipboard.writeText(CONTACTS.wechat);alert(`WeChat ID copied: ${CONTACTS.wechat}`)};
  function submit(e:FormEvent<HTMLFormElement>){
   e.preventDefault(); const f=new FormData(e.currentTarget);
   const msg=`A3 GROUP SG — LIMOUSINE ENQUIRY
 
-Service: ${f.get("service")}\nVehicle: ${f.get("vehicle")}\nDisplayed rate: ${vehiclePrice.transfer} / ${vehiclePrice.hourly}
+Service: ${f.get("service")}
 Pickup: ${f.get("date")} ${f.get("time")}
 From: ${f.get("pickup")}
 To / itinerary: ${f.get("destination")}
@@ -155,24 +89,8 @@ Please confirm availability and quotation.`;
    <div className="grid three">{tours.map((t,i)=><article className={i===1?"featured":""} key={t[1]}><small>{t[0]}</small><h3>{t[1]}</h3><p>{t[2]}</p><div><a href="#booking">Book journey</a><a href={CONTACTS.rates} target="_blank">Rates ↗</a></div></article>)}</div>
   </section>
 
-  <section className="pricing">
-  <div className="title"><p>VEHICLE RATES</p><h2>Clear pricing by vehicle.</h2><span>Rates shown in SGD. Additional stops, waiting time, parking, tolls and special requests may incur extra charges.</span><small className="liveStatus">● {rateStatus}</small></div>
-  <div className="priceTableWrap">
-   <table className="priceTable">
-    <thead><tr><th scope="col">Vehicle</th><th scope="col">Transfer</th><th scope="col">Hourly Charter</th><th scope="col">Minimum</th></tr></thead>
-    <tbody>{rates.map(rate=><tr key={rate.id}>
-     <th scope="row" data-label="Vehicle">{rate.vehicle_name}</th>
-     <td data-label="Transfer">{rate.transfer_price===null?"Contact us":`${money(rate.transfer_price,rate.currency)} per trip`}</td>
-     <td data-label="Hourly Charter">{rate.hourly_price===null?"Custom quotation":`${money(rate.hourly_price,rate.currency)} per hour`}</td>
-     <td data-label="Minimum">{rate.minimum_hours?`${rate.minimum_hours} hours`:"Subject to availability"}</td>
-    </tr>)}</tbody>
-   </table>
-  </div>
-  <a className="financeLink" href={CONTACTS.rates} target="_blank">Manage and view full rates at finance.a3group.sg ↗</a>
- </section>
-
   <section className="section cream" id="fleet"><div className="title"><p>THE A3 FLEET</p><h2>Premium comfort for every group.</h2></div>
-   <div className="grid three fleet">{rates.map(rate=><article key={rate.id}><div className="vehicle">◆<small>{rate.category}</small></div><h3>{rate.vehicle_name}</h3><p>{vehicleDescriptions[rate.vehicle_name]??"Premium chauffeur vehicle."}</p><div className="priceBox"><span><small>TRANSFER</small><strong>{rate.transfer_price===null?"Contact us":money(rate.transfer_price,rate.currency)}</strong></span><span><small>HOURLY</small><strong>{rate.hourly_price===null?"Contact us":`${money(rate.hourly_price,rate.currency)}/hour`}</strong></span></div><p className="minimum">{rate.minimum_hours?`${rate.minimum_hours}-hour minimum`:"Subject to availability"}</p><a href="#booking" onClick={()=>setVehicle(rate.vehicle_name)}>Book this vehicle →</a></article>)}</div>
+   <div className="grid three fleet">{fleet.map(v=><article key={v[1]}><div className="vehicle">◆<small>{v[0]}</small></div><h3>{v[1]}</h3><p>{v[2]}</p><a href={CONTACTS.rates} target="_blank">View vehicle rate ↗</a></article>)}</div>
   </section>
 
   <section className="reviews" id="reviews"><div><p className="eyebrow">TRUSTED JOURNEYS</p><h2>Your experience matters.</h2><p>Share your experience and help future travellers choose A3 Group SG with confidence.</p><div className="stars">★★★★★</div><a className="gold" href={CONTACTS.review} target="_blank">Leave a Google Review</a></div>
@@ -184,8 +102,6 @@ Please confirm availability and quotation.`;
   </div>
   <form onSubmit={submit}>
    <label className="full">Service<select name="service" required defaultValue=""><option value="" disabled>Select service</option>{services.map(s=><option key={s[0]}>{s[0]}</option>)}</select></label>
-   <label className="full">Vehicle<select name="vehicle" value={vehicle} onChange={e=>setVehicle(e.target.value)}>{rates.map(rate=><option key={rate.id} value={rate.vehicle_name}>{rate.vehicle_name}</option>)}</select></label>
-   <div className="selectedRate full"><span><small>TRANSFER RATE</small><strong>{vehiclePrice.transfer}</strong></span><span><small>HOURLY RATE</small><strong>{vehiclePrice.hourly}</strong></span></div>
    <label>Date<input type="date" name="date" required/></label><label>Time<input type="time" name="time" required/></label>
    <label className="full">Pickup<input name="pickup" required/></label><label className="full">Destination / itinerary<textarea name="destination" required/></label>
    <label>Passengers<input type="number" name="passengers" defaultValue="1" min="1"/></label><label>Luggage<input type="number" name="luggage" defaultValue="0" min="0"/></label>

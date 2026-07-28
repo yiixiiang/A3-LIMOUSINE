@@ -1,0 +1,14 @@
+AEJKY VEHICLE TYPE DROPDOWN — VALIDATION
+
+PASS  Existing A3 Finance vehicle_type_id submission is retained.
+PASS  Live vehicle types continue loading from A3 Finance.
+PASS  5-seater options are grouped together.
+PASS  7-seater options are grouped together.
+PASS  Other options remain available.
+PASS  Vehicle Type is moved from Additional trip details into the main form.
+PASS  Selected vehicle is added to the WhatsApp quotation summary.
+PASS  TypeScript/TSX syntax transpilation passed.
+
+NOTE
+A complete Next.js build should be run locally by APPLY-AND-PUSH.cmd because
+this environment does not contain the project's installed node_modules.

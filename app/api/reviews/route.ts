@@ -1,0 +1,3 @@
+import {NextResponse} from "next/server";
+export const dynamic="force-dynamic";
+export async function POST(request:Request){try{const finance=(process.env.NEXT_PUBLIC_A3_FINANCE_URL||"https://finance.a3group.sg").replace(/\/$/,"");const body=await request.text();const response=await fetch(`${finance}/api/public/reviews`,{method:"POST",headers:{"Content-Type":"application/json"},body,cache:"no-store"});const payload=await response.json().catch(()=>({}));return NextResponse.json(payload,{status:response.status})}catch{return NextResponse.json({ok:false,error:"A3 Finance is temporarily unavailable."},{status:502})}}

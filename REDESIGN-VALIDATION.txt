@@ -1,0 +1,28 @@
+AEJKY LIMOUSINE — PROFESSIONAL REDESIGN VALIDATION
+Date: 24 July 2026
+
+PASS  TSX syntax transpilation completed without errors.
+PASS  All 49 referenced CSS Module classes are declared.
+PASS  Existing A3 Finance GET and POST integration remains unchanged.
+PASS  Existing WhatsApp quotation fallback remains available.
+PASS  Live A3 Finance vehicle types and rate cards remain supported.
+PASS  Quotation reference number flow remains supported.
+PASS  Desktop, tablet and mobile responsive rules are included.
+PASS  Optional quotation fields are organised under Additional trip details.
+PASS  Full package excludes node_modules, .next and local environment files.
+
+LAYOUT CHANGES
+- Simplified hero and navigation.
+- Reduced oversized vertical spacing.
+- Services rearranged into a clean 2 × 2 professional grid.
+- Rates changed from a long table into six compact cards.
+- Replaced the large About block with a concise Why AEJKY section.
+- Removed Telegram and WeChat cards from the main customer flow.
+- Reduced the quotation form to essential fields first.
+- Moved optional fields into a collapsible Additional trip details section.
+- Kept Staff Login discreetly inside the footer.
+
+NOTE
+A complete Next.js build was not rerun in this sandbox because npm registry access
+was unavailable. The updated TSX syntax and CSS references passed local validation.
+Run npm run build after applying the patch.
