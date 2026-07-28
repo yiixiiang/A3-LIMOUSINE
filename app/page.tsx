@@ -7,7 +7,7 @@ const CONTACTS={
  wechat:"A3GROUPSG",
  instagram:"https://instagram.com/a3groupsg",
  facebook:"https://facebook.com/a3groupsg",
- review:"https://g.page/r/YOUR-GOOGLE-REVIEW-LINK/review",
+ review:"https://www.google.com/search?q=A3+Group+SG+Google+Reviews",
  rates:"https://finance.a3group.sg"
 };
 
@@ -120,7 +120,7 @@ Please confirm availability and quotation.`;
    <button className="menu" onClick={()=>setOpen(!open)}>☰</button>
    <nav className={open?"open":""}>
     <a href="#services">Services</a><a href="#tours">Journeys</a><a href="#fleet">Fleet</a>
-    <a href={CONTACTS.rates} target="_blank">Rates</a><a href="#reviews">Reviews</a><a className="book" href="#booking">Book Now</a>
+    <a href={CONTACTS.rates} target="_blank">Rates</a><a href={CONTACTS.review} target="_blank">Google Review</a><a className="book" href="/book">Book Now</a>
    </nav>
   </header>
 
@@ -129,7 +129,7 @@ Please confirm availability and quotation.`;
     <p className="eyebrow">SINGAPORE • JOHOR BAHRU • PRIVATE CHAUFFEUR</p>
     <h1>Luxury travel,<em>personally driven.</em></h1>
     <p>Premium airport transfers, private city journeys and hourly chauffeur services for business, leisure and special occasions.</p>
-    <div className="actions"><a className="gold" href="#booking">Reserve Your Journey</a><a className="ghost" href={CONTACTS.rates} target="_blank">View Rates</a></div>
+    <div className="actions"><a className="gold" href="/book">Reserve Your Journey</a><a className="ghost" href={CONTACTS.rates} target="_blank">View Rates</a></div>
     <div className="social">
      <a href={`https://wa.me/${CONTACTS.whatsapp}`} target="_blank">WhatsApp</a>
      <a href={`https://t.me/${CONTACTS.telegram}`} target="_blank">Telegram</a>
@@ -139,7 +139,7 @@ Please confirm availability and quotation.`;
     </div>
    </div>
    <aside><small>QUICK ACCESS</small><h2>Where may we take you?</h2>
-    <a href="#booking"><b>01</b><span>Start a booking</span>→</a>
+    <a href="/book"><b>01</b><span>Start a booking</span>→</a>
     <a href={CONTACTS.rates} target="_blank"><b>02</b><span>View online rates</span>↗</a>
     <a href={CONTACTS.review} target="_blank"><b>03</b><span>Leave a review</span>★</a>
    </aside>
@@ -152,48 +152,22 @@ Please confirm availability and quotation.`;
   </section>
 
   <section className="darkSection" id="tours"><div className="title light"><p>CURATED SINGAPORE JOURNEYS</p><h2>See more. Travel better.</h2></div>
-   <div className="grid three">{tours.map((t,i)=><article className={i===1?"featured":""} key={t[1]}><small>{t[0]}</small><h3>{t[1]}</h3><p>{t[2]}</p><div><a href="#booking">Book journey</a><a href={CONTACTS.rates} target="_blank">Rates ↗</a></div></article>)}</div>
+   <div className="grid three">{tours.map((t,i)=><article className={i===1?"featured":""} key={t[1]}><small>{t[0]}</small><h3>{t[1]}</h3><p>{t[2]}</p><div><a href="/book">Book journey</a><a href={CONTACTS.rates} target="_blank">Rates ↗</a></div></article>)}</div>
   </section>
 
   <section className="pricing">
   <div className="title"><p>VEHICLE RATES</p><h2>Clear pricing by vehicle.</h2><span>Rates shown in SGD. Additional stops, waiting time, parking, tolls and special requests may incur extra charges.</span><small className="liveStatus">● {rateStatus}</small></div>
-  <div className="priceTableWrap">
-   <table className="priceTable">
-    <thead><tr><th scope="col">Vehicle</th><th scope="col">Transfer</th><th scope="col">Hourly Charter</th><th scope="col">Minimum</th></tr></thead>
-    <tbody>{rates.map(rate=><tr key={rate.id}>
-     <th scope="row" data-label="Vehicle">{rate.vehicle_name}</th>
-     <td data-label="Transfer">{rate.transfer_price===null?"Contact us":`${money(rate.transfer_price,rate.currency)} per trip`}</td>
-     <td data-label="Hourly Charter">{rate.hourly_price===null?"Custom quotation":`${money(rate.hourly_price,rate.currency)} per hour`}</td>
-     <td data-label="Minimum">{rate.minimum_hours?`${rate.minimum_hours} hours`:"Subject to availability"}</td>
-    </tr>)}</tbody>
-   </table>
+  <div className="priceTable">
+   <div className="priceHead"><span>Vehicle</span><span>Transfer</span><span>Hourly Charter</span><span>Minimum</span></div>
+   {rates.map(rate=><div key={rate.id}><strong>{rate.vehicle_name}</strong><span>{rate.transfer_price===null?"Contact us":`${money(rate.transfer_price,rate.currency)} per trip`}</span><span>{rate.hourly_price===null?"Custom quotation":`${money(rate.hourly_price,rate.currency)} per hour`}</span><span>{rate.minimum_hours?`${rate.minimum_hours} hours`:"Subject to availability"}</span></div>)}
   </div>
   <a className="financeLink" href={CONTACTS.rates} target="_blank">Manage and view full rates at finance.a3group.sg ↗</a>
  </section>
 
   <section className="section cream" id="fleet"><div className="title"><p>THE A3 FLEET</p><h2>Premium comfort for every group.</h2></div>
-   <div className="grid three fleet">{rates.map(rate=><article key={rate.id}><div className="vehicle">◆<small>{rate.category}</small></div><h3>{rate.vehicle_name}</h3><p>{vehicleDescriptions[rate.vehicle_name]??"Premium chauffeur vehicle."}</p><div className="priceBox"><span><small>TRANSFER</small><strong>{rate.transfer_price===null?"Contact us":money(rate.transfer_price,rate.currency)}</strong></span><span><small>HOURLY</small><strong>{rate.hourly_price===null?"Contact us":`${money(rate.hourly_price,rate.currency)}/hour`}</strong></span></div><p className="minimum">{rate.minimum_hours?`${rate.minimum_hours}-hour minimum`:"Subject to availability"}</p><a href="#booking" onClick={()=>setVehicle(rate.vehicle_name)}>Book this vehicle →</a></article>)}</div>
+   <div className="grid three fleet">{rates.map(rate=><article key={rate.id}><div className="vehicle">◆<small>{rate.category}</small></div><h3>{rate.vehicle_name}</h3><p>{vehicleDescriptions[rate.vehicle_name]??"Premium chauffeur vehicle."}</p><div className="priceBox"><span><small>TRANSFER</small><strong>{rate.transfer_price===null?"Contact us":money(rate.transfer_price,rate.currency)}</strong></span><span><small>HOURLY</small><strong>{rate.hourly_price===null?"Contact us":`${money(rate.hourly_price,rate.currency)}/hour`}</strong></span></div><p className="minimum">{rate.minimum_hours?`${rate.minimum_hours}-hour minimum`:"Subject to availability"}</p><a href="/book">Book this vehicle →</a></article>)}</div>
   </section>
 
-  <section className="reviews" id="reviews"><div><p className="eyebrow">TRUSTED JOURNEYS</p><h2>Your experience matters.</h2><p>Share your experience and help future travellers choose A3 Group SG with confidence.</p><div className="stars">★★★★★</div><a className="gold" href={CONTACTS.review} target="_blank">Leave a Google Review</a></div>
-   <div className="quotes"><blockquote>★★★★★<p>Professional, punctual and very comfortable.</p><small>Airport Transfer Guest</small></blockquote><blockquote>★★★★★<p>Courteous and flexible throughout our city tour.</p><small>Private Tour Guest</small></blockquote></div>
-  </section>
-
-  <section className="booking" id="booking"><div><p className="eyebrow darkText">RESERVE YOUR JOURNEY</p><h2>Private travel, arranged properly.</h2><p>Complete the form and send your request through WhatsApp.</p>
-   <div className="links"><a href={`https://wa.me/${CONTACTS.whatsapp}`}>WhatsApp ↗</a><a href={`https://t.me/${CONTACTS.telegram}`}>Telegram ↗</a><button onClick={copyWechat}>WeChat: {CONTACTS.wechat} — Copy</button><a href={CONTACTS.instagram}>Instagram ↗</a><a href={CONTACTS.facebook}>Facebook ↗</a><a href={CONTACTS.review}>Google Review ★</a></div>
-  </div>
-  <form onSubmit={submit}>
-   <label className="full">Service<select name="service" required defaultValue=""><option value="" disabled>Select service</option>{services.map(s=><option key={s[0]}>{s[0]}</option>)}</select></label>
-   <label className="full">Vehicle<select name="vehicle" value={vehicle} onChange={e=>setVehicle(e.target.value)}>{rates.map(rate=><option key={rate.id} value={rate.vehicle_name}>{rate.vehicle_name}</option>)}</select></label>
-   <div className="selectedRate full"><span><small>TRANSFER RATE</small><strong>{vehiclePrice.transfer}</strong></span><span><small>HOURLY RATE</small><strong>{vehiclePrice.hourly}</strong></span></div>
-   <label>Date<input type="date" name="date" required/></label><label>Time<input type="time" name="time" required/></label>
-   <label className="full">Pickup<input name="pickup" required/></label><label className="full">Destination / itinerary<textarea name="destination" required/></label>
-   <label>Passengers<input type="number" name="passengers" defaultValue="1" min="1"/></label><label>Luggage<input type="number" name="luggage" defaultValue="0" min="0"/></label>
-   <label>Name<input name="name" required/></label><label>Contact<input name="contact" required/></label>
-   <label className="full">Remarks<textarea name="remarks"/></label><button className="gold full" type="submit">Send via WhatsApp</button>
-   <a className="rate full" href={CONTACTS.rates} target="_blank">Check current rates at finance.a3group.sg ↗</a>
-  </form></section>
-
-  <footer><div className="logo"><b>A3</b><span><strong>A3 GROUP SG</strong><small>PRIVATE CHAUFFEUR</small></span></div><p>Airport Transfer • Hourly Chauffeur • Point-to-Point • Singapore ↔ Johor Bahru</p><div className="footlinks"><a href={CONTACTS.instagram}>Instagram</a><a href={CONTACTS.facebook}>Facebook</a><a href={CONTACTS.review}>Review</a></div></footer>
+  <footer><div className="logo"><b>A3</b><span><strong>A3 GROUP SG</strong><small>PRIVATE CHAUFFEUR</small></span></div><p>Airport Transfer • Hourly Chauffeur • Point-to-Point • Singapore ↔ Johor Bahru</p><div className="footlinks"><a href={CONTACTS.instagram}>Instagram</a><a href={CONTACTS.facebook}>Facebook</a><a href={CONTACTS.review} target="_blank">Google Review</a></div></footer>
  </main>
 }

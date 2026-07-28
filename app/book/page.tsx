@@ -1,10 +1,65 @@
 "use client";
-import {FormEvent,useEffect,useState} from "react";
 
-type Vehicle={vehicle_name:string};
-export default function BookPage(){
- const [vehicles,setVehicles]=useState<Vehicle[]>([]); const [message,setMessage]=useState(""); const [busy,setBusy]=useState(false); const [startedAt]=useState(()=>Date.now());
- useEffect(()=>{const finance=(process.env.NEXT_PUBLIC_A3_FINANCE_URL||"https://finance.a3group.sg").replace(/\/$/,"");fetch(`${finance}/api/public/website-catalogue?site=limousine`,{cache:"no-store"}).then(r=>r.json()).then(p=>{const names=Array.from(new Set<string>((Array.isArray(p.items)?p.items:[]).map((x:any)=>String(x.title_en||x.service_name||"")).filter((name:string)=>Boolean(name))));setVehicles(names.map((vehicle_name:string)=>({vehicle_name}))) }).catch(()=>setVehicles([]))},[]);
- async function submit(event:FormEvent<HTMLFormElement>){event.preventDefault();setBusy(true);setMessage("");const form=new FormData(event.currentTarget);const payload=Object.fromEntries(form.entries());try{const response=await fetch("/api/limousine",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...payload,started_at:startedAt,company:""})});const result=await response.json();if(!response.ok)throw new Error(result.error||"Unable to submit booking.");setMessage(`Booking submitted. Reference: ${result.reference}`);event.currentTarget.reset()}catch(error){setMessage(error instanceof Error?error.message:"Unable to submit booking.")}finally{setBusy(false)}}
- return <main className="standalone"><a className="back" href="/">← Back to website</a><section className="pageIntro"><p>ONLINE BOOKING</p><h1>Reserve your limousine journey.</h1><span>Your request is sent directly to A3 Finance as a pending booking for staff confirmation.</span></section><form className="publicForm" onSubmit={submit}><label>Service<select name="service" required defaultValue=""><option value="" disabled>Select service</option><option>Airport Transfer</option><option>Hourly Chauffeur</option><option>Point-to-Point</option><option>Singapore ↔ Johor</option><option>Wedding / Event</option></select></label><label>Vehicle<select name="vehicle" required defaultValue=""><option value="" disabled>Select vehicle</option>{vehicles.map(v=><option key={v.vehicle_name}>{v.vehicle_name}</option>)}</select></label><label>Pickup date<input type="date" name="date" required/></label><label>Pickup time<input type="time" name="time" required/></label><label className="full">Pickup location<input name="pickup" required/></label><label className="full">Destination / itinerary<textarea name="destination" required/></label><label>Passengers<input name="passengers" type="number" min="1" defaultValue="1"/></label><label>Luggage<input name="luggage" type="number" min="0" defaultValue="0"/></label><label>Flight number<input name="flight" placeholder="Optional"/></label><label>Airline<input name="airline" placeholder="Optional"/></label><label>Full name<input name="name" required/></label><label>Mobile / WhatsApp<input name="contact" required/></label><label className="full">Email<input name="email" type="email" placeholder="Optional"/></label><label className="full">Remarks<textarea name="remarks"/></label><button className="gold full" disabled={busy}>{busy?"Submitting…":"Submit Booking"}</button>{message&&<p className="formMessage full">{message}</p>}</form></main>
+import { FormEvent, useEffect, useState } from "react";
+
+const FINANCE_URL=(process.env.NEXT_PUBLIC_A3_FINANCE_URL||"https://finance.a3group.sg").replace(/\/$/,"");
+const GOOGLE_REVIEW="https://www.google.com/search?q=A3+Group+SG+Google+Reviews";
+const services=["Airport Transfer","Hourly Chauffeur","Point-to-Point","Singapore ↔ Johor"];
+
+type Rate={id:string;vehicle_name:string;transfer_price:number|null;hourly_price:number|null;minimum_hours:number|null;currency:string};
+
+export default function BookingPage(){
+ const [rates,setRates]=useState<Rate[]>([]);
+ const [status,setStatus]=useState("");
+ const [submitting,setSubmitting]=useState(false);
+ useEffect(()=>{fetch(`${FINANCE_URL}/api/public/website-catalogue?site=limousine`,{cache:"no-store"}).then(r=>r.json()).then(payload=>{
+  const grouped=new Map<string,Rate>();
+  for(const item of Array.isArray(payload.items)?payload.items:[]){
+   const name=String(item.title_en||item.service_name||item.price_key);
+   const current=grouped.get(name)||{id:String(item.id),vehicle_name:name,transfer_price:null,hourly_price:null,minimum_hours:null,currency:String(item.currency||"SGD")};
+   const kind=String(item.subgroup||item.category||"").toLowerCase();
+   if(kind.includes("hour")) current.hourly_price=Number(item.price); else current.transfer_price=Number(item.price);
+   grouped.set(name,current);
+  }
+  setRates([...grouped.values()]);
+ }).catch(()=>setRates([]));},[]);
+ async function submit(e:FormEvent<HTMLFormElement>){
+  e.preventDefault(); setSubmitting(true); setStatus("");
+  const f=new FormData(e.currentTarget);
+  const body=Object.fromEntries(f.entries());
+  try{
+   const response=await fetch(`${FINANCE_URL}/api/public/limousine`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+   const result=await response.json();
+   if(!response.ok||!result.ok) throw new Error(result.error||"Unable to submit booking.");
+   setStatus(`Booking submitted successfully. Reference: ${result.reference}`);
+   e.currentTarget.reset();
+  }catch(error){setStatus(error instanceof Error?error.message:"Unable to submit booking.");}
+  finally{setSubmitting(false);}
+ }
+ return <main className="bookingPage">
+  <header>
+   <a className="logo" href="/"><b>A3</b><span><strong>A3 GROUP SG</strong><small>PRIVATE CHAUFFEUR</small></span></a>
+   <nav><a href="/">Home</a><a href={FINANCE_URL} target="_blank">Rates</a><a href={GOOGLE_REVIEW} target="_blank">Google Review</a></nav>
+  </header>
+  <section className="bookingHero">
+   <div><p className="eyebrow">RESERVE YOUR JOURNEY</p><h1>Private travel,<br/><em>arranged properly.</em></h1><p>Complete the form below. Your request will be sent directly to A3 Finance for confirmation.</p></div>
+  </section>
+  <section className="booking bookingStandalone">
+   <div><p className="eyebrow darkText">BOOKING REQUEST</p><h2>Tell us where you are going.</h2><p>Submit your trip details and receive a booking reference immediately.</p><div className="links"><a href={FINANCE_URL} target="_blank">View current rates ↗</a><a href={GOOGLE_REVIEW} target="_blank">Google Review ★</a></div></div>
+   <form onSubmit={submit}>
+    <label className="full">Service<select name="service" required defaultValue=""><option value="" disabled>Select service</option>{services.map(s=><option key={s}>{s}</option>)}</select></label>
+    <label className="full">Vehicle<select name="vehicle" required defaultValue=""><option value="" disabled>Select vehicle</option>{rates.map(r=><option key={r.id} value={r.vehicle_name}>{r.vehicle_name}</option>)}</select></label>
+    <label>Date<input type="date" name="date" required/></label><label>Time<input type="time" name="time" required/></label>
+    <label className="full">Pickup<input name="pickup" placeholder="Pickup address" required/></label>
+    <label className="full">Destination / itinerary<textarea name="destination" placeholder="Destination or planned itinerary" required/></label>
+    <label>Passengers<input type="number" name="passengers" defaultValue="1" min="1" required/></label><label>Luggage<input type="number" name="luggage" defaultValue="0" min="0"/></label>
+    <label>Name<input name="name" required/></label><label>Contact<input name="contact" required/></label>
+    <label className="full">Email (optional)<input type="email" name="email"/></label>
+    <label className="full">Remarks<textarea name="remarks"/></label>
+    <button className="gold full" type="submit" disabled={submitting}>{submitting?"Submitting…":"Submit Booking"}</button>
+    {status&&<p className="bookingStatus full">{status}</p>}
+   </form>
+  </section>
+  <footer><div className="logo"><b>A3</b><span><strong>A3 GROUP SG</strong><small>PRIVATE CHAUFFEUR</small></span></div><p>Airport Transfer • Hourly Chauffeur • Point-to-Point • Singapore ↔ Johor Bahru</p></footer>
+ </main>
 }
