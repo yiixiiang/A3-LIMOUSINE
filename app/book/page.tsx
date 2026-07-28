@@ -2,9 +2,10 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
-type Vehicle={id:number;name:string};
+type Vehicle={id:number;name:string;passenger_capacity?:number|null;luggage_capacity?:number|null;image_url?:string};
 type Rate={vehicle_type_id:number;service_type:string;base_amount:number;currency:string;pricing_method:string};
-type RatePayload={vehicle_types?:Vehicle[];rate_cards?:Rate[]};
+type AdditionalCharge={id:string;name:string;charge_type:string;amount:number;currency:string;description:string};
+type RatePayload={vehicle_types?:Vehicle[];rate_cards?:Rate[];additional_charges?:AdditionalCharge[]};
 
 const serviceMap:Record<string,string>={
   "Airport Arrival":"airport_arrival",
@@ -52,6 +53,8 @@ export default function BookPage(){
       <label>Service<select name="service" required value={service} onChange={event=>setService(event.target.value)}><option value="" disabled>Select service</option>{Object.keys(serviceMap).map(item=><option key={item}>{item}</option>)}</select></label>
       <label>Vehicle<select name="vehicle_id" required value={vehicleId} onChange={event=>setVehicleId(event.target.value)}><option value="" disabled>Select vehicle</option>{(rates.vehicle_types||[]).map(vehicle=><option key={vehicle.id} value={vehicle.id}>{vehicle.name}</option>)}</select></label>
       <div className="selectedRate full"><span><small>DISPLAYED RATE</small><strong>{displayedRate}</strong></span><span><small>STATUS</small><strong>Pending confirmation</strong></span></div>
+      {selectedVehicle?.image_url&&<div className="full bookingVehiclePreview"><img src={selectedVehicle.image_url} alt={selectedVehicle.name}/><div><strong>{selectedVehicle.name}</strong><span>{selectedVehicle.passenger_capacity?`${selectedVehicle.passenger_capacity} passengers`:""}{selectedVehicle.luggage_capacity?` · ${selectedVehicle.luggage_capacity} luggage`:""}</span></div></div>}
+      {(rates.additional_charges||[]).length>0&&<div className="full bookingCharges"><h3>Possible additional charges</h3>{(rates.additional_charges||[]).map(charge=><div key={charge.id}><span><strong>{charge.name}</strong><small>{charge.description}</small></span><b>{charge.charge_type==="actual_cost"?"Actual cost":new Intl.NumberFormat("en-SG",{style:"currency",currency:charge.currency||"SGD",maximumFractionDigits:0}).format(charge.amount)}{charge.charge_type==="per_hour"?" / hour":charge.charge_type==="per_stop"?" / stop":charge.charge_type==="per_seat"?" / seat":""}</b></div>)}</div>}
       <label>Pickup date<input type="date" name="date" required/></label><label>Pickup time<input type="time" name="time" required/></label>
       <label className="full">Pickup location<input name="pickup" required placeholder="Hotel, airport terminal or full address"/></label>
       <label className="full">Destination / itinerary<textarea name="destination" required placeholder="Destination, stops or full itinerary"/></label>
