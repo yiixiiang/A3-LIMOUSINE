@@ -1,30 +1,21 @@
-# A3 Premium Limousine Website
+# A3 Limousine — Complete Fix
 
-Included:
-- Premium dark luxury layout
-- Rates linked to https://finance.a3group.sg
-- WhatsApp booking form
-- WeChat copy button
-- Telegram, Instagram and Facebook links
-- Google Review section
-- Mobile responsive design
-- Turbopack workspace-root fix
-
-## Edit contact details
-Open `src/app/page.tsx` and update the `CONTACTS` object at the top.
-
-## Copy into your project using CMD
-```bat
-cd /d C:\Users\Admin\Downloads\A3\projects\LIMOUSINE
-xcopy /E /I /Y "EXTRACTED-FOLDER\src" "src"
-copy /Y "EXTRACTED-FOLDER\next.config.ts" "next.config.ts"
-npm install
-rmdir /S /Q .next 2>nul
-npm run dev
-```
+- Dedicated `/book` page based on the dark premium website design.
+- Booking submissions proxy to `https://finance.a3group.sg/api/public/limousine` and create a Pending booking reference.
+- Rates load from `https://finance.a3group.sg/api/public/rate-matrix` through the local `/api/limousine` proxy.
+- Google Review is an external Google link only. No local review page or form.
+- Clean source package: no `node_modules`, `.next`, `.vercel`, `.env.local`, or build cache.
 
 ## Deploy
-```bat
+
+```cmd
+npm install
 npm run build
+git add .
+git commit -m "Fix limousine booking, finance rates and Google review"
+git pull --rebase origin main
+git push origin main
 vercel --prod
 ```
+
+Required Vercel variables are listed in `.env.example`.
