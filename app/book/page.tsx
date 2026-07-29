@@ -37,6 +37,7 @@ export default function BookPage(){
   const [message,setMessage]=useState("");
   const [busy,setBusy]=useState(false);
   const [startedAt]=useState(()=>Date.now());
+  const [termsAccepted,setTermsAccepted]=useState(false);
 
   useEffect(()=>{fetch("/api/limousine",{cache:"no-store"}).then(async response=>{const body=await response.json();if(!response.ok)throw new Error(body.error||"Unable to load rates.");setRates(body)}).catch(()=>setRates({}))},[]);
 
@@ -64,6 +65,7 @@ export default function BookPage(){
       `Flight: ${value("flight")}`,
       `Airline: ${value("airline")}`,
       `Remarks: ${value("remarks")}`,
+      `Terms accepted: ${termsAccepted?"Yes":"No"}`,
     ].join("\n");
     window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(details)}`,"_blank","noopener,noreferrer");
   }
@@ -73,11 +75,11 @@ export default function BookPage(){
     const form=event.currentTarget;const data=new FormData(form);
     const payload=Object.fromEntries(data.entries());
     try{
-      const response=await fetch("/api/limousine",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...payload,service,vehicle:selectedVehicle?.name||payload.vehicle,displayed_rate:displayedRate,passengerCount:Number(payload.passengers||0),luggageCount:Number(payload.luggage||0),flightNumber:String(payload.flight||""),pickupAddress:String(payload.pickup||""),destinationAddress:String(payload.destination||""),started_at:startedAt,company:""})});
+      const response=await fetch("/api/limousine",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...payload,service,vehicle:selectedVehicle?.name||payload.vehicle,displayed_rate:displayedRate,passengerCount:Number(payload.passengers||0),luggageCount:Number(payload.luggage||0),flightNumber:String(payload.flight||""),pickupAddress:String(payload.pickup||""),destinationAddress:String(payload.destination||""),termsAccepted:true,termsVersion:"2026-07-29",termsAcceptedAt:new Date().toISOString(),started_at:startedAt,company:""})});
       const result=await response.json();
       if(!response.ok)throw new Error(result.error||"Unable to submit booking.");
       setMessage(`Booking submitted successfully. Reference: ${result.reference}`);
-      form.reset();setService("");setVehicleId("");
+      form.reset();setService("");setVehicleId("");setTermsAccepted(false);
     }catch(error){setMessage(error instanceof Error?error.message:"Unable to submit booking.")}
     finally{setBusy(false)}
   }
@@ -102,8 +104,9 @@ export default function BookPage(){
       <div className="formSection full"><span>02</span><div><h2>Contact details</h2><p>We will use these details to confirm your booking.</p></div></div>
       <label>Full name<input name="name" required/></label><label>Mobile / WhatsApp<input name="contact" required/></label>
       <label className="full">Email<input name="email" type="email" placeholder="Optional"/></label><label className="full">Remarks<textarea name="remarks" placeholder="Child seat, accessibility, special requests or other notes"/></label>
+      <label className="full termsConsent"><input type="checkbox" name="termsAccepted" checked={termsAccepted} onChange={event=>setTermsAccepted(event.target.checked)} required/><span>I agree to the <a href="/terms" target="_blank" rel="noreferrer">Terms & Conditions</a> and acknowledge the booking, cancellation, waiting-time, luggage and cross-border policies.</span></label>
       <input className="hp" name="company" tabIndex={-1} autoComplete="off"/>
-      <div className="full bookingSubmitActions"><button className="gold submitBooking" disabled={busy}>{busy?"Submitting…":"Submit Booking"}</button><button type="button" className="ghost darkGhost" onClick={event=>openWhatsApp(event.currentTarget.form!)}>Send full details by WhatsApp</button></div>
+      <div className="full bookingSubmitActions"><button className="gold submitBooking" disabled={busy||!termsAccepted}>{busy?"Submitting…":"Submit Booking"}</button><button type="button" className="ghost darkGhost" onClick={event=>openWhatsApp(event.currentTarget.form!)}>Send full details by WhatsApp</button></div>
       {message&&<p className="formMessage full">{message}</p>}
     </form></section>
   </main>

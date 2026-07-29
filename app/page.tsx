@@ -120,6 +120,6 @@ export default function Home(){
 
     <section className="bookingCta"><p className="eyebrow">RESERVE YOUR JOURNEY</p><h2>Send your booking directly to our team.</h2><p>The online form creates a pending booking for staff confirmation and returns a booking reference.</p><div className="actions"><a className="gold" href="/book">Open Booking Page</a><a className="ghost darkGhost" href={`https://wa.me/${WHATSAPP}`} target="_blank" rel="noreferrer">WhatsApp</a></div></section>
 
-    <footer><div className="logo"><b>A3</b><span><strong>A3 GROUP SG</strong><small>PRIVATE CHAUFFEUR</small></span></div><p>Airport Transfer • Hourly Chauffeur • Point-to-Point • Singapore ↔ Johor Bahru</p><div className="footlinks"><a href="/book">Book Now</a><a href={GOOGLE_REVIEW_URL} target="_blank" rel="noreferrer">Google Review</a></div></footer>
+    <footer><div className="logo"><b>A3</b><span><strong>A3 GROUP SG</strong><small>PRIVATE CHAUFFEUR</small></span></div><p>Airport Transfer • Hourly Chauffeur • Point-to-Point • Singapore ↔ Johor Bahru</p><div className="footlinks"><a href="/book">Book Now</a><a href="/terms">Terms & Conditions</a><a href={GOOGLE_REVIEW_URL} target="_blank" rel="noreferrer">Google Review</a></div></footer>
   </main>
 }
