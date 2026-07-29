@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 const FINANCE_BASE_URL = (
   process.env.NEXT_PUBLIC_A3_FINANCE_URL || "https://finance.a3group.sg"
@@ -32,7 +32,7 @@ async function upstreamFetch(url: string, init?: RequestInit) {
   try {
     return await fetch(url, {
       ...init,
-      cache: "no-store",
+      next: { revalidate: 300 },
       signal: controller.signal,
       headers: {
         Accept: "application/json",
@@ -52,7 +52,7 @@ export async function GET() {
       return publicError("Unable to load live A3 Finance rates.", 502);
     }
     return NextResponse.json(payload, {
-      headers: { "Cache-Control": "no-store" },
+      headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=86400" },
     });
   } catch {
     return publicError("Unable to load live A3 Finance rates.", 502);
@@ -94,7 +94,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(payload, {
       status: 200,
-      headers: { "Cache-Control": "no-store" },
+      headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=86400" },
     });
   } catch {
     return publicError(

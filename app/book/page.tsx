@@ -38,9 +38,8 @@ export default function BookPage(){
   const [busy,setBusy]=useState(false);
   const [startedAt]=useState(()=>Date.now());
   const [termsAccepted,setTermsAccepted]=useState(false);
-  const [termsMeta,setTermsMeta]=useState({version:"2026-07-29",checkboxText:"I agree to the Terms & Conditions and acknowledge the booking, cancellation, waiting-time, luggage and cross-border policies."});
 
-  useEffect(()=>{fetch("/api/terms",{cache:"no-store"}).then(r=>r.json()).then(body=>setTermsMeta(current=>({...current,...(body.terms||{})}))).catch(()=>{});fetch("/api/limousine",{cache:"no-store"}).then(async response=>{const body=await response.json();if(!response.ok)throw new Error(body.error||"Unable to load rates.");setRates(body)}).catch(()=>setRates({}))},[]);
+  useEffect(()=>{fetch("/api/limousine",{cache:"no-store"}).then(async response=>{const body=await response.json();if(!response.ok)throw new Error(body.error||"Unable to load rates.");setRates(body)}).catch(()=>setRates({}))},[]);
 
   const selectedVehicle=useMemo(()=>rates.vehicle_types?.find(vehicle=>String(vehicle.id)===vehicleId),[rates,vehicleId]);
   const selectedRate=useMemo(()=>rates.rate_cards?.find(rate=>String(rate.vehicle_type_id)===vehicleId&&rate.service_type===serviceMap[service]),[rates,vehicleId,service]);
@@ -76,9 +75,7 @@ export default function BookPage(){
     const form=event.currentTarget;const data=new FormData(form);
     const payload=Object.fromEntries(data.entries());
     try{
-      const pickup=new Date(`${String(payload.date)}T${String(payload.time).slice(0,5)}:00+08:00`);
-      if(Number.isNaN(pickup.getTime())||pickup.getTime()-Date.now()<=6*60*60*1000)throw new Error("Bookings must be made more than 6 hours before the scheduled pickup time. For urgent bookings, please call or WhatsApp us.");
-      const response=await fetch("/api/limousine",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...payload,service,vehicle:selectedVehicle?.name||payload.vehicle,displayed_rate:displayedRate,passengerCount:Number(payload.passengers||0),luggageCount:Number(payload.luggage||0),flightNumber:String(payload.flight||""),pickupAddress:String(payload.pickup||""),destinationAddress:String(payload.destination||""),termsAccepted:true,termsVersion:termsMeta.version,termsAcceptedAt:new Date().toISOString(),started_at:startedAt,company:""})});
+      const response=await fetch("/api/limousine",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...payload,service,vehicle:selectedVehicle?.name||payload.vehicle,displayed_rate:displayedRate,passengerCount:Number(payload.passengers||0),luggageCount:Number(payload.luggage||0),flightNumber:String(payload.flight||""),pickupAddress:String(payload.pickup||""),destinationAddress:String(payload.destination||""),termsAccepted:true,termsVersion:"2026-07-29",termsAcceptedAt:new Date().toISOString(),started_at:startedAt,company:""})});
       const result=await response.json();
       if(!response.ok)throw new Error(result.error||"Unable to submit booking.");
       setMessage(`Booking submitted successfully. Reference: ${result.reference}`);
@@ -102,13 +99,12 @@ export default function BookPage(){
       <label>Pickup date<input type="date" name="date" required/></label><label>Pickup time<input type="time" name="time" required/></label>
       <label className="full">Pickup location<input name="pickup" required placeholder="Hotel, airport terminal or full address"/></label>
       <label className="full">Destination / itinerary<textarea name="destination" required placeholder="Destination, stops or full itinerary"/></label>
-      <label>Number of passengers<input name="passengers" type="number" min="1" defaultValue="1" required/><small>Include adults and children.</small></label><label>Number of luggage items<input name="luggage" type="number" min="0" defaultValue="0" required/><small>Count each suitcase or large travel bag as one item.</small></label>
-      <div className="luggageSizeGuide"><div><strong>Cabin luggage example</strong><span>Up to approximately 55 × 40 × 23 cm.</span></div><div><strong>Large luggage example</strong><span>Up to approximately 75 × 50 × 30 cm. Declare oversized items in Remarks.</span></div><a className="luggageGuideLink" href="/luggage-size-guide.png" target="_blank" rel="noreferrer"><img src="/luggage-size-guide.png" alt="View visual examples of luggage sizes"/><span>Open the full luggage-size visual guide</span></a></div>
+      <label>Number of passengers<input name="passengers" type="number" min="1" defaultValue="1" required/><small>Include adults and children.</small></label><label>Number of luggage items<input name="luggage" type="number" min="0" defaultValue="0" required/><small>Include suitcases and large bags.</small></label>
       <label>Flight number<input name="flight" placeholder="Optional"/></label><label>Airline<input name="airline" placeholder="Optional"/></label>
       <div className="formSection full"><span>02</span><div><h2>Contact details</h2><p>We will use these details to confirm your booking.</p></div></div>
       <label>Full name<input name="name" required/></label><label>Mobile / WhatsApp<input name="contact" required/></label>
       <label className="full">Email<input name="email" type="email" placeholder="Optional"/></label><label className="full">Remarks<textarea name="remarks" placeholder="Child seat, accessibility, special requests or other notes"/></label>
-      <label className="full termsConsent"><input type="checkbox" name="termsAccepted" checked={termsAccepted} onChange={event=>setTermsAccepted(event.target.checked)} required/><span>{termsMeta.checkboxText.split("Terms & Conditions")[0]}<a href="/terms" target="_blank" rel="noreferrer">Terms & Conditions</a>{termsMeta.checkboxText.split("Terms & Conditions").slice(1).join("Terms & Conditions")}</span></label>
+      <label className="full termsConsent"><input type="checkbox" name="termsAccepted" checked={termsAccepted} onChange={event=>setTermsAccepted(event.target.checked)} required/><span>I agree to the <a href="/terms" target="_blank" rel="noreferrer">Terms & Conditions</a> and acknowledge the booking, cancellation, waiting-time, luggage and cross-border policies.</span></label>
       <input className="hp" name="company" tabIndex={-1} autoComplete="off"/>
       <div className="full bookingSubmitActions"><button className="gold submitBooking" disabled={busy||!termsAccepted}>{busy?"Submitting…":"Submit Booking"}</button><button type="button" className="ghost darkGhost" onClick={event=>openWhatsApp(event.currentTarget.form!)}>Send full details by WhatsApp</button></div>
       {message&&<p className="formMessage full">{message}</p>}

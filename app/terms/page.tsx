@@ -1,118 +1,25 @@
 import type {Metadata} from "next";
 
-export const dynamic="force-dynamic";
-export const metadata:Metadata={
-  title:"Terms & Conditions | A3 Group SG",
-  description:"Booking, payment, cancellation and service terms for A3 Group SG limousine services."
-};
+export const metadata:Metadata={title:"Terms & Conditions | A3 Group SG",description:"Booking, payment, cancellation and service terms for A3 Group SG limousine services."};
 
-type Terms={title:string;intro:string;version:string;lastUpdated:string;content:string};
-type PolicySection={id:string;number:string;title:string;paragraphs:string[];bullets:string[]};
-
-const fallback:Terms={
-  title:"Terms & Conditions",
-  intro:"These terms apply to A3 Group SG limousine bookings.",
-  version:"2026-07-29",
-  lastUpdated:"2026-07-29",
-  content:`1. Booking lead time
-Online bookings must be submitted more than 6 hours before the scheduled pickup time. A booking made exactly 6 hours before pickup is not accepted.
-
-2. Passenger and luggage capacity
-Customers must choose a vehicle suitable for the declared passenger and luggage quantities.
-- Cabin luggage example: up to approximately 55 × 40 × 23 cm.
-- Standard large luggage example: up to approximately 75 × 50 × 30 cm.
-- Oversized, sports or bulky items must be declared before confirmation.`
-};
-
-async function getTerms():Promise<Terms>{
-  try{
-    const finance=(process.env.NEXT_PUBLIC_A3_FINANCE_URL||"https://finance.a3group.sg").replace(/\/$/,"");
-    const response=await fetch(`${finance}/api/public/limousine/terms`,{cache:"no-store"});
-    if(!response.ok)return fallback;
-    const body=await response.json();
-    return {...fallback,...(body.terms||{})};
-  }catch{return fallback}
-}
-
-function slugify(value:string,index:number){
-  const slug=value.toLowerCase().replace(/^\d+[.)]\s*/,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-  return slug||`section-${index+1}`;
-}
-
-function parseSections(content:string):PolicySection[]{
-  const normalized=String(content||"").replace(/\r/g,"").trim();
-  const blocks=normalized.split(/\n\s*\n+/).map(block=>block.trim()).filter(Boolean);
-  return blocks.map((block,index)=>{
-    const lines=block.split("\n").map(line=>line.trim()).filter(Boolean);
-    const first=lines[0]||`Section ${index+1}`;
-    const looksLikeHeading=/^(?:\d+[.)]\s*)?[A-Z][^.!?]{2,90}$/.test(first);
-    const rawTitle=looksLikeHeading?first:`Section ${index+1}`;
-    const title=rawTitle.replace(/^\d+[.)]\s*/,"");
-    const bodyLines=looksLikeHeading?lines.slice(1):lines;
-    const bullets=bodyLines.filter(line=>/^[-•*]\s+/.test(line)).map(line=>line.replace(/^[-•*]\s+/,""));
-    const paragraphs=bodyLines.filter(line=>!/^[-•*]\s+/.test(line)).join(" ").split(/\s{2,}/).map(item=>item.trim()).filter(Boolean);
-    return {
-      id:slugify(title,index),
-      number:String(index+1).padStart(2,"0"),
-      title,
-      paragraphs:paragraphs.length?paragraphs:["Details will be updated shortly."],
-      bullets
-    };
-  });
-}
-
-function formatDate(value:string){
-  const date=new Date(`${value}T00:00:00`);
-  if(Number.isNaN(date.getTime()))return value;
-  return new Intl.DateTimeFormat("en-SG",{day:"numeric",month:"long",year:"numeric"}).format(date);
-}
-
-export default async function TermsPage(){
-  const terms=await getTerms();
-  const sections=parseSections(terms.content);
-  return <main className="termsPage professionalTermsPage">
-    <header className="termsSiteHeader">
-      <a className="logo" href="/"><b>A3</b><span><strong>A3 GROUP SG</strong><small>PRIVATE CHAUFFEUR</small></span></a>
-      <div className="termsHeaderActions"><a href="/book" className="termsBookButton">Book a ride</a><a href="/">Back to website</a></div>
-    </header>
-
-    <section className="termsHero professionalTermsHero">
-      <div className="termsHeroInner">
-        <div className="termsHeroCopy"><p className="eyebrow">CUSTOMER SERVICE POLICY</p><h1>{terms.title}</h1><p className="termsHeroIntro">{terms.intro}</p></div>
-        <div className="termsDocumentMeta"><div><span>Policy version</span><strong>{terms.version}</strong></div><div><span>Last updated</span><strong>{formatDate(terms.lastUpdated)}</strong></div></div>
-      </div>
-    </section>
-
-    <div className="termsLayout">
-      <aside className="termsSidebar">
-        <div className="termsSidebarCard">
-          <span className="termsSidebarLabel">CONTENTS</span>
-          <nav>{sections.map(section=><a key={section.id} href={`#${section.id}`}><b>{section.number}</b><span>{section.title}</span></a>)}</nav>
-        </div>
-        <div className="termsHelpCard"><span>Need clarification?</span><strong>Speak with our booking team</strong><p>Contact us before confirming your booking when a service condition is unclear.</p><a href="/book">Go to booking page</a></div>
-      </aside>
-
-      <article className="termsDocument">
-        <div className="termsSummary">
-          <div className="termsSummaryIcon">i</div>
-          <div><strong>Please read before submitting a booking</strong><p>By submitting a request, you confirm that your booking details are accurate and that you accept the policy version displayed on this page.</p></div>
-        </div>
-        <div className="termsSections">
-          {sections.map((section,index)=><section key={section.id} id={section.id} className={index===0?"featuredTerm":""}>
-            <div className="termSectionNumber">{section.number}</div>
-            <div className="termSectionBody">
-              <h2>{section.title}</h2>
-              {section.paragraphs.map((paragraph,pIndex)=><p key={pIndex}>{paragraph}</p>)}
-              {section.bullets.length>0&&<ul>{section.bullets.map((bullet,bIndex)=><li key={bIndex}>{bullet}</li>)}</ul>}
-            </div>
-          </section>)}
-        </div>
-        <div className="termsLuggageGuide">
-          <div><span>CABIN BAG EXAMPLE</span><strong>Up to 55 × 40 × 23 cm</strong><p>Typical carry-on suitcase or compact travel bag.</p></div>
-          <div><span>LARGE LUGGAGE EXAMPLE</span><strong>Up to 75 × 50 × 30 cm</strong><p>Typical checked suitcase. Oversized items must be declared.</p></div>
-        </div>
-        <footer className="termsDocumentFooter"><div><strong>A3 Group SG</strong><span>Private Chauffeur Services</span></div><a href="/book">Continue to booking →</a></footer>
-      </article>
-    </div>
-  </main>
-}
+export default function TermsPage(){return <main className="termsPage">
+  <header className="bookingHeader"><a className="logo" href="/"><b>A3</b><span><strong>A3 GROUP SG</strong><small>PRIVATE CHAUFFEUR</small></span></a><a href="/">← Back to website</a></header>
+  <section className="termsHero"><p className="eyebrow">SERVICE POLICY</p><h1>Terms & Conditions</h1><p>These terms apply to limousine, airport transfer, hourly disposal, point-to-point and Singapore–Johor Bahru bookings made with A3 Group SG.</p><div className="termsMeta"><span>Version: 2026-07-29</span><span>Last updated: 29 July 2026</span></div></section>
+  <div className="termsContent">
+    <section className="termsNotice"><h2>Important booking notice</h2><p>All online bookings are requests and remain pending until availability and the final amount are confirmed by our team.</p></section>
+    <section><h2>1. Booking lead time</h2><p>Bookings must be submitted at least six hours before pickup. Urgent bookings should be made by telephone or WhatsApp and remain subject to availability.</p></section>
+    <section><h2>2. Rates and payment</h2><ul><li>Displayed prices are starting or base prices unless expressly stated otherwise.</li><li>ERP, parking, tolls, waiting time, additional stops, remote-area fees and other published surcharges may be added.</li><li>Payment instructions and any required deposit will be provided during confirmation.</li><li>A booking is confirmed only after our team issues confirmation and any required payment is received.</li></ul></section>
+    <section><h2>3. Passenger and luggage capacity</h2><p>The customer must select a vehicle suitable for the declared passenger and luggage quantities. The driver may refuse unsafe overloading. A larger vehicle or additional vehicle may be required at extra cost.</p></section>
+    <section><h2>4. Airport transfers and waiting time</h2><ul><li>Airport arrival bookings include up to 60 minutes of complimentary waiting from the confirmed landing time unless otherwise stated.</li><li>Other transfers include up to 15 minutes of complimentary waiting.</li><li>Additional waiting is chargeable at the published rate.</li><li>The customer is responsible for providing the correct flight number, terminal and arrival details.</li></ul></section>
+    <section><h2>5. Hourly disposal</h2><p>Hourly disposal has a minimum booking of three hours. Extra time is billed in accordance with the published hourly rate. The itinerary must remain within the booked service area unless otherwise agreed.</p></section>
+    <section><h2>6. Cross-border travel</h2><p>Singapore to Johor Bahru prices are quoted from the published starting price. Final pricing may vary according to destination, route, vehicle, waiting time, immigration conditions, multiple stops, tolls and timing. Passengers must hold valid travel documents and comply with immigration requirements.</p></section>
+    <section><h2>7. Additional stops and itinerary changes</h2><p>Unplanned stops, detours, destination changes or route extensions may be refused when they affect another confirmed job and may incur additional charges.</p></section>
+    <section><h2>8. Cancellation, refund and no-show</h2><p>Cancellation and refund eligibility depends on the notice period, vehicle arrangement and any third-party costs already incurred. Late cancellation and no-show bookings may be charged up to the full confirmed amount. Any specific cancellation terms stated in the booking confirmation take priority.</p></section>
+    <section><h2>9. Child seats and accessibility requests</h2><p>Child seats, booster seats, wheelchair support and other special arrangements must be requested in advance and are subject to availability and published charges.</p></section>
+    <section><h2>10. Conduct, cleaning and damage</h2><p>Smoking, illegal activity and unsafe conduct are prohibited. The customer is responsible for reasonable cleaning, repair or replacement costs arising from damage, excessive soiling or misuse caused by passengers.</p></section>
+    <section><h2>11. Delays and vehicle substitution</h2><p>We will use reasonable efforts to provide the confirmed service. Traffic, weather, accidents, immigration queues and other events outside our control may cause delays. We may substitute an equivalent or higher-capacity vehicle where operationally necessary.</p></section>
+    <section><h2>12. Liability</h2><p>To the extent permitted by law, liability is limited to direct loss reasonably arising from the booked transport service. We are not responsible for missed flights, appointments or consequential loss caused by inaccurate customer information or events outside our reasonable control.</p></section>
+    <section><h2>13. Privacy and booking records</h2><p>Customer details are used to arrange, confirm and fulfil the transport service, communicate with the customer and maintain operational records. Booking submissions record acceptance of the applicable terms version and acceptance time.</p></section>
+    <section><h2>14. Contact</h2><p>Questions about a booking or these terms may be sent through the contact and WhatsApp channels shown on this website.</p><a className="gold termsBack" href="/book">Return to booking</a></section>
+  </div>
+</main>}
