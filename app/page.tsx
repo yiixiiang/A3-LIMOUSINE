@@ -21,8 +21,10 @@ const capacityFallbacks:Record<string,{passengers:number;luggage:number}>={
 };
 function capacity(vehicle:Vehicle){
   const fallback=capacityFallbacks[vehicle.name]||{passengers:Number(vehicle.name.match(/\d+/)?.[0]||0),luggage:0};
-  const passengers=Number(vehicle.passenger_capacity ?? vehicle.passengerCapacity ?? vehicle.max_passengers ?? vehicle.passengers ?? 0) || fallback.passengers;
-  const luggage=Number(vehicle.luggage_capacity ?? vehicle.luggageCapacity ?? vehicle.max_luggage ?? vehicle.luggage ?? 0) || fallback.luggage;
+  const rawPassengers=vehicle.passenger_capacity ?? vehicle.passengerCapacity ?? vehicle.max_passengers ?? vehicle.passengers;
+  const rawLuggage=vehicle.luggage_capacity ?? vehicle.luggageCapacity ?? vehicle.max_luggage ?? vehicle.luggage;
+  const passengers=rawPassengers===null||rawPassengers===undefined?fallback.passengers:Number(rawPassengers);
+  const luggage=rawLuggage===null||rawLuggage===undefined?fallback.luggage:Number(rawLuggage);
   return {passengers,luggage};
 }
 
