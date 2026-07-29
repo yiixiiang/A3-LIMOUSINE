@@ -68,3 +68,11 @@ footer{background:#080a0d;color:white;text-align:center;padding:55px 7%}footer .
 .fleetLuggageGuide{max-width:940px;margin:0 auto 24px;padding:15px 18px;border:1px solid #e0d8ca;border-radius:13px;background:#fffaf1;color:#665f55;font-size:12px;line-height:1.6}
 .fleetLuggageGuide strong{color:#2b3440}
 @media(max-width:650px){.termsLuggageGuide,.luggageSizeGuide{grid-template-columns:1fr}}
+
+.luggageGuideVisual{max-width:1120px;margin:0 auto 34px;padding:12px;background:#fff;border:1px solid #ded6c9;border-radius:18px;box-shadow:0 18px 45px rgba(12,24,39,.08)}
+.luggageGuideVisual img{display:block;width:100%;height:auto;border-radius:12px}
+.luggageGuideVisual figcaption{padding:11px 8px 2px;text-align:center;color:#6b655c;font-size:12px;line-height:1.5}
+.luggageGuideLink{grid-column:1/-1;display:grid;grid-template-columns:minmax(180px,320px) 1fr;align-items:center;gap:18px;margin-top:8px;padding:12px;border:1px solid #ddd3c2;border-radius:14px;background:#fff;color:#172235;text-decoration:none}
+.luggageGuideLink img{display:block;width:100%;height:auto;border-radius:9px}
+.luggageGuideLink span{font-weight:700;line-height:1.45}
+@media(max-width:720px){.luggageGuideVisual{padding:7px;border-radius:12px}.luggageGuideVisual img{border-radius:8px}.luggageGuideLink{grid-template-columns:1fr}.luggageGuideLink span{text-align:center}}
